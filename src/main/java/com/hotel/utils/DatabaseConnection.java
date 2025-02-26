@@ -5,8 +5,6 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 import java.io.InputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 
 public class DatabaseConnection {
