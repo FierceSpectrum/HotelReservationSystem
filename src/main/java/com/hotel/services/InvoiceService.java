@@ -1,25 +1,38 @@
 package com.hotel.services;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 import com.hotel.models.Reservation;
-import com.hotel.models.Room;
-import java.util.List;
+import com.hotel.utils.DatabaseConnection;
 
 public class InvoiceService {
-    // Generates an invoice for a reservation
-    public void generateInvoice(Reservation reservation, List<Room> rooms) {
-        Room room = rooms.stream()
-                .filter(r -> r.getId() == reservation.getRoomId())
-                .findFirst()
-                .orElse(null);
 
-        if (room != null) {
-            double total = room.getPrice();
-            System.out.println("Invoice Generated:");
-            System.out.println("Client ID: " + reservation.getClientId());
-            System.out.println("Room: " + room.getType());
-            System.out.println("Total: $" + total);
-        } else {
-            System.out.println("Error: Room not found.");
+    public void generateInvoice(Reservation reservation) {
+        String query = "SELECT type, price FROM rooms WHERE id = ?";
+
+        try (Connection connection = DatabaseConnection.getInstance().getConnection();
+                PreparedStatement statement = connection.prepareStatement(query)) {
+
+            statement.setInt(1, reservation.getRoomId());
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                String roomType = resultSet.getString("type");
+                double total = resultSet.getDouble("price");
+
+                System.out.println("Invoice Generated:");
+                System.out.println("Client ID: " + reservation.getClientId());
+                System.out.println("Room: " + roomType);
+                System.out.println("Total: $" + total);
+            } else {
+                System.out.println("Error: Room not found.");
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Database error: " + e.getMessage());
         }
     }
 }
