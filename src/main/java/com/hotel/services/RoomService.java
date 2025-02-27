@@ -11,16 +11,33 @@ import java.util.List;
 
 public class RoomService {
 
+    private final DatabaseConnection databaseConnection;
+
+    // Constructor que recibe una instancia de DatabaseConnection
+    public RoomService() {
+        this.databaseConnection = DatabaseConnection.getInstance();
+    }
+
     // Método para guardar una habitación en la base de datos
     public void saveRoom(Room room) {
         String query = "INSERT INTO rooms (type, price, available) VALUES (?, ?, ?)";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+        try (Connection conn = databaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, room.getType());
             stmt.setDouble(2, room.getPrice());
             stmt.setBoolean(3, room.isAvailable());
             stmt.executeUpdate();
-            System.out.println("Habitación guardada correctamente.");
+
+            // Recuperar el ID generado
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    int id = generatedKeys.getInt(1);
+                    room.setId(id);
+                    System.out.println("Habitación guardada correctamente con ID: " + id);
+                } else {
+                    throw new SQLException("No se pudo obtener el ID generado.");
+                }
+            }
         } catch (SQLException e) {
             System.err.println("Error al guardar la habitación: " + e.getMessage());
         }
@@ -30,7 +47,7 @@ public class RoomService {
     public List<Room> getAllRooms() {
         List<Room> rooms = new ArrayList<>();
         String query = "SELECT * FROM rooms";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = databaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
@@ -51,7 +68,7 @@ public class RoomService {
     // Método para actualizar una habitación en la base de datos
     public void updateRoom(Room room) {
         String query = "UPDATE rooms SET type = ?, price = ?, available = ? WHERE id = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = databaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, room.getType());
             stmt.setDouble(2, room.getPrice());
@@ -67,7 +84,7 @@ public class RoomService {
     // Método para eliminar una habitación de la base de datos
     public void deleteRoom(int id) {
         String query = "DELETE FROM rooms WHERE id = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = databaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setInt(1, id);
             stmt.executeUpdate();
@@ -81,7 +98,7 @@ public class RoomService {
     public List<Room> findRoomsByType(String type) {
         List<Room> rooms = new ArrayList<>();
         String query = "SELECT * FROM rooms WHERE type = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
+        try (Connection conn = databaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, type);
             ResultSet rs = stmt.executeQuery();

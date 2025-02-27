@@ -8,9 +8,13 @@ import java.util.Properties;
 import java.io.InputStream;
 
 public class DatabaseConnection {
-    private static HikariDataSource dataSource;
 
-    static {
+    // Instancia única de DatabaseConnection (Singleton)
+    private static DatabaseConnection instance;
+    private HikariDataSource dataSource;
+
+    // Constructor privado para evitar instanciación externa
+    private DatabaseConnection() {
         try {
             // Cargar las propiedades del archivo .env desde el classpath
             Properties env = new Properties();
@@ -37,13 +41,25 @@ public class DatabaseConnection {
         }
     }
 
+    // Método para obtener la instancia única (Singleton)
+    public static DatabaseConnection getInstance() {
+        if (instance == null) {
+            synchronized (DatabaseConnection.class) {
+                if (instance == null) {
+                    instance = new DatabaseConnection();
+                }
+            }
+        }
+        return instance;
+    }
+
     // Método para obtener una conexión del pool
-    public static Connection getConnection() throws SQLException {
+    public Connection getConnection() throws SQLException {
         return dataSource.getConnection();
     }
 
     // Método para cerrar el pool de conexiones
-    public static void closePool() {
+    public void closePool() {
         if (dataSource != null && !dataSource.isClosed()) {
             dataSource.close();
             System.out.println("Pool de conexiones cerrado.");
