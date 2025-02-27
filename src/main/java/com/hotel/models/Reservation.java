@@ -8,14 +8,16 @@ public class Reservation {
     private int roomId;
     private LocalDate checkInDate;
     private LocalDate checkOutDate;
+    private String status;
 
     // Constructor
-    public Reservation(int id, int clientId, int roomId, LocalDate checkInDate, LocalDate checkOutDate) {
+    public Reservation(int id, int clientId, int roomId, LocalDate checkInDate, LocalDate checkOutDate,String status) {
         this.id = id;
         this.clientId = clientId;
         this.roomId = roomId;
         this.checkInDate = checkInDate;
         this.checkOutDate = checkOutDate;
+        this.status = status;
     }
 
     // Getters y Setters
@@ -57,5 +59,13 @@ public class Reservation {
 
     public void setCheckOutDate(LocalDate checkOutDate) {
         this.checkOutDate = checkOutDate;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

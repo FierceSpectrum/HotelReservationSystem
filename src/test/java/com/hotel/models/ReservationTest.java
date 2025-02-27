@@ -14,7 +14,7 @@ public class ReservationTest {
     void setUp() {
         checkIn = LocalDate.of(2023, 10, 1);
         checkOut = LocalDate.of(2023, 10, 5);
-        reservation = new Reservation(1, 101, 201, checkIn, checkOut);
+        reservation = new Reservation(1, 101, 201, checkIn, checkOut, "Active");
     }
 
     @Test
@@ -24,6 +24,7 @@ public class ReservationTest {
         assertEquals(201, reservation.getRoomId());
         assertEquals(checkIn, reservation.getCheckInDate());
         assertEquals(checkOut, reservation.getCheckOutDate());
+        assertEquals("Active", reservation.getStatus());
     }
 
     @Test
@@ -33,11 +34,13 @@ public class ReservationTest {
         reservation.setRoomId(202);
         reservation.setCheckInDate(LocalDate.of(2023, 11, 1));
         reservation.setCheckOutDate(LocalDate.of(2023, 11, 5));
+        reservation.setStatus("Cancelled");
 
         assertEquals(2, reservation.getId());
         assertEquals(102, reservation.getClientId());
         assertEquals(202, reservation.getRoomId());
         assertEquals(LocalDate.of(2023, 11, 1), reservation.getCheckInDate());
         assertEquals(LocalDate.of(2023, 11, 5), reservation.getCheckOutDate());
+        assertEquals("Cancelled", reservation.getStatus());
     }
 }
