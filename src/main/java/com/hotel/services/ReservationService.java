@@ -14,8 +14,8 @@ public class ReservationService {
     private final DatabaseConnection databaseConnection;
 
     // Constructor que recibe una instancia de DatabaseConnection
-    public ReservationService() {
-        this.databaseConnection = DatabaseConnection.getInstance();
+    public ReservationService(DatabaseConnection databaseConnection) {
+        this.databaseConnection = databaseConnection;
     }
 
     // Método para crear una reserva

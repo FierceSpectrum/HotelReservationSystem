@@ -14,8 +14,8 @@ public class RoomService {
     private final DatabaseConnection databaseConnection;
 
     // Constructor que recibe una instancia de DatabaseConnection
-    public RoomService() {
-        this.databaseConnection = DatabaseConnection.getInstance();
+    public RoomService(DatabaseConnection databaseConnection) {
+        this.databaseConnection = databaseConnection;
     }
 
     // Método para guardar una habitación en la base de datos

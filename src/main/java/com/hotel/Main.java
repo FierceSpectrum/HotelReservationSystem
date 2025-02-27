@@ -16,8 +16,8 @@ public class Main {
         // Crear instancias de los servicios
         DatabaseConnection databaseConnection = DatabaseConnection.getInstance();
         ClientService clientService = new ClientService(databaseConnection);
-        RoomService roomService = new RoomService();
-        ReservationService reservationService = new ReservationService();
+        RoomService roomService = new RoomService(databaseConnection);
+        ReservationService reservationService = new ReservationService(databaseConnection);
 
         try {
             // Prueba de ClientService

@@ -1,9 +1,9 @@
 package com.hotel.utils;
 
-import org.junit.jupiter.api.Test;
+import org.testng.annotations.Test;
 import java.sql.Connection;
 import java.sql.SQLException;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.testng.Assert.*;
 
 public class DatabaseConnectionTest {
     
@@ -19,6 +19,12 @@ public class DatabaseConnectionTest {
             
             // Verificar que la coneción esté abierta y sea válida
             assertNotNull(connection.isClosed(), "La conexión debe estar abierta.");
+
+            // Cerar la conexión
+            connection.close();
+
+            // Verificar que la conexión esté cerrada
+            assertTrue(connection.isClosed(), "La conexión debe estar cerrada.");
         } catch (SQLException e) {
             fail("Error al obtener la conexión: " + e.getMessage());
         }

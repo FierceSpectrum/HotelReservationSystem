@@ -1,16 +1,16 @@
 package com.hotel.models;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+import static org.testng.Assert.*;
 import java.time.LocalDate;
-import static org.junit.jupiter.api.Assertions.*;
 
 public class ReservationTest {
     private Reservation reservation;
     private LocalDate checkIn;
     private LocalDate checkOut;
 
-    @BeforeEach
+    @BeforeMethod
     void setUp() {
         checkIn = LocalDate.of(2023, 10, 1);
         checkOut = LocalDate.of(2023, 10, 5);

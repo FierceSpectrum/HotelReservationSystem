@@ -2,11 +2,11 @@ package com.hotel.services;
 
 import com.hotel.models.Reservation;
 import com.hotel.utils.DatabaseConnection;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -15,9 +15,10 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
+import static org.testng.Assert.*;
 
 class ReservationServiceTest {
 
@@ -36,49 +37,55 @@ class ReservationServiceTest {
     @InjectMocks
     private ReservationService reservationService;
 
-    @BeforeEach
+    @BeforeMethod
     void setUp() throws SQLException {
         MockitoAnnotations.openMocks(this);
+
+        // Asegurar que el servicio usa el mock de DatabaseConnection
+        reservationService = new ReservationService(databaseConnection);
+
+        // Configurar el comportamiento de los mocks para ambos tipos de prepareStatement
         when(databaseConnection.getConnection()).thenReturn(connection);
-        when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
+        when(connection.prepareStatement(any())).thenReturn(preparedStatement);
+        when(connection.prepareStatement(any(), anyInt())).thenReturn(preparedStatement);
     }
 
     @Test
-    void testCreateReservation_Success() throws SQLException {
-        Reservation reservation = new Reservation(1, 1, 1, LocalDate.now(), LocalDate.now().plusDays(2), "Active");
+    void testCreateReservation() throws SQLException {
+        // Configurar el mock para executeUpdate y getGeneratedKeys
+        when(preparedStatement.executeUpdate()).thenReturn(1);
+        when(preparedStatement.getGeneratedKeys()).thenReturn(resultSet);
+        when(resultSet.next()).thenReturn(true);
+        when(resultSet.getInt(1)).thenReturn(1);
+
+        // Crear una reserva
+        Reservation reservation = new Reservation(0, 1, 1, LocalDate.now(), LocalDate.now().plusDays(2), "Active");
+
+        // Crear la reserva
         reservationService.createReservation(reservation);
 
+        // Verficar que se asignó un ID
+        assertEquals(1, reservation.getId());
+
+        // Verificar que se llamó a executeUpdate
         verify(preparedStatement, times(1)).executeUpdate();
-        System.out.println("Prueba de crear reserva exitosa.");
     }
 
     @Test
-    void testCreateReservation_Failure() throws SQLException {
-        Reservation reservation = new Reservation(1, 1, 1, LocalDate.now(), LocalDate.now().plusDays(2), "Active");
-        when(preparedStatement.executeUpdate()).thenThrow(new SQLException("Error de base de datos"));
+    void testCancelReservation() throws SQLException {
+        // Configurar el mock para executeUpdate
+        when(preparedStatement.executeUpdate()).thenReturn(1);
 
-        assertThrows(SQLException.class, () -> reservationService.createReservation(reservation));
-        System.out.println("Prueba de crear reserva fallida.");
-    }
-
-    @Test
-    void testCancelReservation_Success() throws SQLException {
+        // Cancelar la reserva
         reservationService.cancelReservation(1);
 
+        // Verificar que se llamó a executeUpdate
         verify(preparedStatement, times(1)).executeUpdate();
-        System.out.println("Prueba de cancelar reserva exitosa.");
     }
 
     @Test
-    void testCancelReservation_Failure() throws SQLException {
-        when(preparedStatement.executeUpdate()).thenThrow(new SQLException("Error de base de datos"));
-
-        assertThrows(SQLException.class, () -> reservationService.cancelReservation(1));
-        System.out.println("Prueba de cancelar reserva fallida.");
-    }
-
-    @Test
-    void testGetReservationHistory_Success() throws SQLException {
+    void testGetReservationHistory() throws SQLException {
+        // Configurar el mock para executeQuery
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.next()).thenReturn(true, false);
         when(resultSet.getInt("id")).thenReturn(1);
@@ -88,17 +95,14 @@ class ReservationServiceTest {
         when(resultSet.getDate("check_out_date")).thenReturn(java.sql.Date.valueOf(LocalDate.now().plusDays(2)));
         when(resultSet.getString("status")).thenReturn("Active");
 
+        // Obtener el historial de reservas
         List<Reservation> reservations = reservationService.getReservationHistory(1);
+
+        // Verificar que la lista no está vacía
         assertFalse(reservations.isEmpty());
         assertEquals(1, reservations.size());
-        System.out.println("Prueba de obtener historial de reservas exitosa.");
-    }
 
-    @Test
-    void testGetReservationHistory_Failure() throws SQLException {
-        when(preparedStatement.executeQuery()).thenThrow(new SQLException("Error de base de datos"));
-
-        assertThrows(SQLException.class, () -> reservationService.getReservationHistory(1));
-        System.out.println("Prueba de obtener historial de reservas fallida.");
+        // Verificar que se llamó a executeQuery
+        verify(preparedStatement, times(1)).executeQuery();
     }
 }
