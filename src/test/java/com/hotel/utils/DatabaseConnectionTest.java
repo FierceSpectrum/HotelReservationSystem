@@ -9,8 +9,11 @@ public class DatabaseConnectionTest {
     
     @Test
     void testDatabaseConnection() {
+        // Obtener la instancia única de DatabaseConnection
+        DatabaseConnection dbConnection = DatabaseConnection.getInstance();
+
         // Obtener una conexión del pool
-        try ( Connection connection = DatabaseConnection.getConnection()) {
+        try ( Connection connection = dbConnection.getConnection()) {
             // Verificar que la coneción no sea nula
             assertNotNull(connection, "La conexión a la base de datos no debe ser nula.");
             
