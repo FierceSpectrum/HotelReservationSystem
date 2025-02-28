@@ -1,13 +1,13 @@
 package com.hotel.models;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+import static org.testng.Assert.*;
 
 public class RoomTest {
     private Room room;
 
-    @BeforeEach
+    @BeforeMethod
     void setUp() {
         room = new Room(1, "Single", 100.0, true);
     }

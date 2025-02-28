@@ -1,13 +1,13 @@
 package com.hotel.models;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+import static org.testng.Assert.*;
 
 public class ClientTest {
     private Client client;
 
-    @BeforeEach
+    @BeforeMethod
     void setUp() {
         client = new Client(1, "John Doe", "john@example.com", "123456789");
     }
