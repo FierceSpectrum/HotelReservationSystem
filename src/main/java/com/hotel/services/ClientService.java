@@ -81,6 +81,8 @@ public class ClientService {
                             rs.getString("name"),
                             rs.getString("email"),
                             rs.getString("phone"));
+                } else {
+                    System.out.println("No se encontró el cliente con ID: " + id);
                 }
             }
         } catch (SQLException e) {
