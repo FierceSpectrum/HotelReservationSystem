@@ -22,7 +22,7 @@ public class ClientService {
     public void saveClient(Client client) {
         String query = "INSERT INTO clients (name, email, phone) VALUES (?, ?, ?)";
         try (Connection conn = databaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS)) {
+                PreparedStatement stmt = conn.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS)) {
 
             System.out.println("Connection: " + conn); // Debug
 
@@ -30,7 +30,7 @@ public class ClientService {
             stmt.setString(2, client.getEmail());
             stmt.setString(3, client.getPhone());
             stmt.executeUpdate();
-            
+
             // Recuperar el ID generado
             try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
@@ -51,15 +51,14 @@ public class ClientService {
         List<Client> clients = new ArrayList<>();
         String query = "SELECT * FROM clients";
         try (Connection conn = databaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query);
-             ResultSet rs = stmt.executeQuery()) {
+                PreparedStatement stmt = conn.prepareStatement(query);
+                ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 Client client = new Client(
-                    rs.getInt("id"),
-                    rs.getString("name"),
-                    rs.getString("email"),
-                    rs.getString("phone")
-                );
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getString("email"),
+                        rs.getString("phone"));
                 clients.add(client);
             }
         } catch (SQLException e) {
@@ -73,16 +72,15 @@ public class ClientService {
         String query = "SELECT * FROM clients WHERE id = ?";
         Client client = null;
         try (Connection conn = databaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+                PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     client = new Client(
-                        rs.getInt("id"),
-                        rs.getString("name"),
-                        rs.getString("email"),
-                        rs.getString("phone")
-                    );
+                            rs.getInt("id"),
+                            rs.getString("name"),
+                            rs.getString("email"),
+                            rs.getString("phone"));
                 }
             }
         } catch (SQLException e) {

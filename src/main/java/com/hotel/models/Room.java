@@ -5,7 +5,7 @@ public class Room {
     private String type;
     private double price;
     private boolean available;
-    
+
     // Constructor
     public Room(int id, String type, double price, boolean available) {
         this.id = id;

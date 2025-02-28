@@ -41,8 +41,9 @@ public class ClientServiceTest {
 
         // Asegurar que el servicio usa el mock de DatabaseConnection
         clientService = new ClientService(databaseConnection);
-    
-        // Configurar el comportamiento de los mocks para ambos tipos de prepareStatement
+
+        // Configurar el comportamiento de los mocks para ambos tipos de
+        // prepareStatement
         when(databaseConnection.getConnection()).thenReturn(connection);
         when(connection.prepareStatement(any())).thenReturn(preparedStatement);
         when(connection.prepareStatement(any(), anyInt())).thenReturn(preparedStatement);
@@ -55,16 +56,16 @@ public class ClientServiceTest {
         when(preparedStatement.getGeneratedKeys()).thenReturn(resultSet);
         when(resultSet.next()).thenReturn(true);
         when(resultSet.getInt(1)).thenReturn(1);
-    
+
         // Crear un cliente con un email único
         Client client = new Client(0, "John Doe", "john@example.com", "123456789");
-    
+
         // Guardar el cliente
         clientService.saveClient(client);
-    
+
         // Verificar que se asignó el ID
         assertEquals(client.getId(), 1);
-    
+
         // Verificar que se llamó a executeUpdate
         verify(preparedStatement, times(1)).executeUpdate();
     }
@@ -78,15 +79,15 @@ public class ClientServiceTest {
         when(resultSet.getString("name")).thenReturn("John Doe");
         when(resultSet.getString("email")).thenReturn("john@example.com");
         when(resultSet.getString("phone")).thenReturn("123456789");
-    
+
         // Buscar el cliente por ID
         Client foundClient = clientService.findClientById(1);
-    
+
         // Verificar que el cliente se encontró correctamente
         assertNotNull(foundClient, "El cliente no debe ser nulo.");
         assertEquals(foundClient.getId(), 1);
         assertEquals(foundClient.getName(), "John Doe");
-    
+
         // Verificar que se llamó a executeQuery
         verify(preparedStatement, times(1)).executeQuery();
     }

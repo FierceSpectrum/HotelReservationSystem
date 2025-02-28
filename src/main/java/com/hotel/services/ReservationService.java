@@ -22,7 +22,7 @@ public class ReservationService {
     public void createReservation(Reservation reservation) {
         String query = "INSERT INTO reservations (client_id, room_id, check_in_date, check_out_date, status) VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = databaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS)) {
+                PreparedStatement stmt = conn.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS)) {
             stmt.setInt(1, reservation.getClientId());
             stmt.setInt(2, reservation.getRoomId());
             stmt.setDate(3, java.sql.Date.valueOf(reservation.getCheckInDate()));
@@ -49,7 +49,7 @@ public class ReservationService {
     public void cancelReservation(int id) {
         String query = "DELETE FROM reservations WHERE id = ?";
         try (Connection conn = databaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+                PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setInt(1, id);
             stmt.executeUpdate();
             System.out.println("Reserva cancelada correctamente.");
@@ -63,18 +63,17 @@ public class ReservationService {
         List<Reservation> reservations = new ArrayList<>();
         String query = "SELECT * FROM reservations WHERE client_id = ?";
         try (Connection conn = databaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+                PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setInt(1, clientId);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 Reservation reservation = new Reservation(
-                    rs.getInt("id"),
-                    rs.getInt("client_id"),
-                    rs.getInt("room_id"),
-                    rs.getDate("check_in_date").toLocalDate(),
-                    rs.getDate("check_out_date").toLocalDate(),
-                    rs.getString("status")
-                );
+                        rs.getInt("id"),
+                        rs.getInt("client_id"),
+                        rs.getInt("room_id"),
+                        rs.getDate("check_in_date").toLocalDate(),
+                        rs.getDate("check_out_date").toLocalDate(),
+                        rs.getString("status"));
                 reservations.add(reservation);
             }
         } catch (SQLException e) {

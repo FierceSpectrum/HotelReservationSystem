@@ -22,7 +22,7 @@ public class RoomService {
     public void saveRoom(Room room) {
         String query = "INSERT INTO rooms (type, price, available) VALUES (?, ?, ?)";
         try (Connection conn = databaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS)) {
+                PreparedStatement stmt = conn.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, room.getType());
             stmt.setDouble(2, room.getPrice());
             stmt.setBoolean(3, room.isAvailable());
@@ -48,15 +48,14 @@ public class RoomService {
         List<Room> rooms = new ArrayList<>();
         String query = "SELECT * FROM rooms";
         try (Connection conn = databaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query);
-             ResultSet rs = stmt.executeQuery()) {
+                PreparedStatement stmt = conn.prepareStatement(query);
+                ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 Room room = new Room(
-                    rs.getInt("id"),
-                    rs.getString("type"),
-                    rs.getDouble("price"),
-                    rs.getBoolean("available")
-                );
+                        rs.getInt("id"),
+                        rs.getString("type"),
+                        rs.getDouble("price"),
+                        rs.getBoolean("available"));
                 rooms.add(room);
             }
         } catch (SQLException e) {
@@ -69,7 +68,7 @@ public class RoomService {
     public void updateRoom(Room room) {
         String query = "UPDATE rooms SET type = ?, price = ?, available = ? WHERE id = ?";
         try (Connection conn = databaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+                PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, room.getType());
             stmt.setDouble(2, room.getPrice());
             stmt.setBoolean(3, room.isAvailable());
@@ -85,7 +84,7 @@ public class RoomService {
     public void deleteRoom(int id) {
         String query = "DELETE FROM rooms WHERE id = ?";
         try (Connection conn = databaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+                PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setInt(1, id);
             stmt.executeUpdate();
             System.out.println("Habitación eliminada correctamente.");
@@ -99,16 +98,15 @@ public class RoomService {
         List<Room> rooms = new ArrayList<>();
         String query = "SELECT * FROM rooms WHERE type = ?";
         try (Connection conn = databaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+                PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, type);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 Room room = new Room(
-                    rs.getInt("id"),
-                    rs.getString("type"),
-                    rs.getDouble("price"),
-                    rs.getBoolean("available")
-                );
+                        rs.getInt("id"),
+                        rs.getString("type"),
+                        rs.getDouble("price"),
+                        rs.getBoolean("available"));
                 rooms.add(room);
             }
         } catch (SQLException e) {

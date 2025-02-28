@@ -43,7 +43,8 @@ class RoomServiceTest {
         // Asegurar que el servicio usa el mock de DatabaseConnection
         roomService = new RoomService(databaseConnection);
 
-        // Configurar el comportamiento de los mocks para ambos tipos de prepareStatement
+        // Configurar el comportamiento de los mocks para ambos tipos de
+        // prepareStatement
         when(databaseConnection.getConnection()).thenReturn(connection);
         when(connection.prepareStatement(any())).thenReturn(preparedStatement);
         when(connection.prepareStatement(any(), anyInt())).thenReturn(preparedStatement);
@@ -65,7 +66,6 @@ class RoomServiceTest {
 
         // Verificar que se asignó el ID
         assertEquals(1, room.getId());
-
 
         // Verificar que se llamó a executeUpdate
         verify(preparedStatement, times(1)).executeUpdate();

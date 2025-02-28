@@ -6,17 +6,17 @@ import java.sql.SQLException;
 import static org.testng.Assert.*;
 
 public class DatabaseConnectionTest {
-    
+
     @Test
     void testDatabaseConnection() {
         // Obtener la instancia única de DatabaseConnection
         DatabaseConnection dbConnection = DatabaseConnection.getInstance();
 
         // Obtener una conexión del pool
-        try ( Connection connection = dbConnection.getConnection()) {
+        try (Connection connection = dbConnection.getConnection()) {
             // Verificar que la coneción no sea nula
             assertNotNull(connection, "La conexión a la base de datos no debe ser nula.");
-            
+
             // Verificar que la coneción esté abierta y sea válida
             assertNotNull(connection.isClosed(), "La conexión debe estar abierta.");
 

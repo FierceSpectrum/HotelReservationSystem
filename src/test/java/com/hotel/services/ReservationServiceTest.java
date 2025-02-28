@@ -44,7 +44,8 @@ class ReservationServiceTest {
         // Asegurar que el servicio usa el mock de DatabaseConnection
         reservationService = new ReservationService(databaseConnection);
 
-        // Configurar el comportamiento de los mocks para ambos tipos de prepareStatement
+        // Configurar el comportamiento de los mocks para ambos tipos de
+        // prepareStatement
         when(databaseConnection.getConnection()).thenReturn(connection);
         when(connection.prepareStatement(any())).thenReturn(preparedStatement);
         when(connection.prepareStatement(any(), anyInt())).thenReturn(preparedStatement);
