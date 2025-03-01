@@ -8,27 +8,66 @@ import java.util.*;
 
 public class ClientService {
 
+    private final DatabaseConnection databaseConnection;
+
+    // Constructor que recibe una instancia de DatabaseConnection
+    public ClientService(DatabaseConnection databaseConnection) {
+        this.databaseConnection = databaseConnection;
+    }
+
     // Registra un nuevo cliente en el sistema
-    public void registerClient(Client client) throws SQLException {
-        String sql = "INSERT INTO clients (id, name, email, phone) VALUES (?, ?, ?, ?)";
+    public void registerClient(Client client) {
+        String sql = "INSERT INTO clients (name, email, phone) VALUES (?, ?, ?)";
 
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = databaseConnection.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
 
-            stmt.setInt(1, client.getId());
-            stmt.setString(2, client.getName());
-            stmt.setString(3, client.getEmail());
-            stmt.setString(4, client.getPhone());
+            stmt.setString(1, client.getName());
+            stmt.setString(2, client.getEmail());
+            stmt.setString(3, client.getPhone());
 
             stmt.executeUpdate();
+
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    int id = generatedKeys.getInt(1);
+                    client.setId(id);
+                    System.out.println("Cliente guardado correctamente con ID: " + id);
+                } else {
+                    throw new SQLException("No se pudo obtener el ID generado.");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al guardar el cliente: " + e.getMessage());
         }
     }
 
+    // Obtiene todos los clientes de la base de datos
+    public List<Client> getAllClients() {
+        List<Client> clients = new ArrayList<>();
+        String sql = "SELECT * FROM clients";
+        try (Connection conn = databaseConnection.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                Client client = new Client(
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getString("email"),
+                        rs.getString("phone"));
+                clients.add(client);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al obtener los clientes: " + e.getMessage());
+        }
+        return clients;
+    }
+
     // Obtiene un cliente por su ID
-    public Client getClient(int clientId) throws SQLException {
+    public Client getClient(int clientId) {
         String sql = "SELECT * FROM clients WHERE id = ?";
 
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        try (Connection conn = databaseConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, clientId);
@@ -42,75 +81,40 @@ public class ClientService {
                             rs.getString("phone"));
                 }
             }
+        } catch (SQLException e) {
+            System.err.println("Error al buscar un cliente: " + e.getMessage());
         }
         return null;
     }
 
-    // Actualiza atributos dinámicos de un cliente
-    public boolean updateClientAttributes(int clientId, Map<String, Object> attributes) throws SQLException {
-        if (attributes == null || attributes.isEmpty()) {
-            return false;
-        }
-
-        StringBuilder sqlBuilder = new StringBuilder("UPDATE clients SET ");
-        List<Object> params = new ArrayList<>();
-
-        for (Iterator<Map.Entry<String, Object>> it = attributes.entrySet().iterator(); it.hasNext();) {
-            Map.Entry<String, Object> entry = it.next();
-            String attributeName = entry.getKey();
-
-            if (!isValidAttribute(attributeName)) {
-                continue;
-            }
-
-            sqlBuilder.append(attributeName).append(" = ?");
-            params.add(entry.getValue());
-
-            if (it.hasNext()) {
-                sqlBuilder.append(", ");
-            }
-        }
-
-        if (params.isEmpty()) {
-            return false;
-        }
-
-        sqlBuilder.append(" WHERE id = ?");
-        params.add(clientId);
-
-        String sql = sqlBuilder.toString();
-
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+    // Actualiza atributos de un cliente
+    public void updateClient(Client client) {
+        String sql = "UPDATE clients SET name = ?, email = ?, phone = ? WHERE id = ?";
+        try (Connection conn = databaseConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            for (int i = 0; i < params.size(); i++) {
-                Object param = params.get(i);
-                if (param instanceof String) {
-                    stmt.setString(i + 1, (String) param);
-                } else if (param instanceof Integer) {
-                    stmt.setInt(i + 1, (Integer) param);
-                }
-            }
-
-            return stmt.executeUpdate() > 0;
+            stmt.setString(1, client.getName());
+            stmt.setString(2, client.getEmail());
+            stmt.setString(3, client.getPhone());
+            stmt.setInt(4, client.getId());
+            stmt.executeUpdate();
+            System.out.println("Cliente actualizado correctamente.");
+        } catch (SQLException e) {
+            System.err.println("Error al actualizar el cliente: " + e.getMessage());
         }
     }
 
     // Elimina un cliente por su ID
-    public boolean deleteClient(int clientId) throws SQLException {
+    public void deleteClient(int clientId) {
         String sql = "DELETE FROM clients WHERE id = ?";
 
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        try (Connection conn = databaseConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, clientId);
 
-            return stmt.executeUpdate() > 0;
+            System.out.println("Cliente eliminado correctamente");
+        } catch (SQLException e) {
+            System.err.println("Error al eliminar un cliente: " + e.getMessage());
         }
-    }
-
-    // Valida que el atributo sea válido para actualización
-    private boolean isValidAttribute(String attributeName) {
-        return Arrays.asList("name", "email", "phone").contains(attributeName);
     }
 }

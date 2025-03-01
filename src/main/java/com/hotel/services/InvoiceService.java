@@ -1,38 +1,43 @@
 package com.hotel.services;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
+import com.hotel.models.Client;
 import com.hotel.models.Reservation;
-import com.hotel.utils.DatabaseConnection;
 
 public class InvoiceService {
 
-    public void generateInvoice(Reservation reservation) {
-        String query = "SELECT type, price FROM rooms WHERE id = ?";
+    private final ReservationService reservationService;
+    private final ClientService clientService;
 
-        try (Connection connection = DatabaseConnection.getInstance().getConnection();
-                PreparedStatement statement = connection.prepareStatement(query)) {
+    // Constructor que recibe una instancia de DatabaseConnection
+    public InvoiceService(ReservationService reservationService, ClientService clientService) {
+        this.reservationService = reservationService;
+        this.clientService = clientService;
+    }
 
-            statement.setInt(1, reservation.getRoomId());
-            ResultSet resultSet = statement.executeQuery();
+    public void generateInvoice(int reservationId) {
+        try {
 
-            if (resultSet.next()) {
-                String roomType = resultSet.getString("type");
-                double total = resultSet.getDouble("price");
+            Reservation reservation = reservationService.getReservation(reservationId);
 
-                System.out.println("Invoice Generated:");
-                System.out.println("Client ID: " + reservation.getClientId());
-                System.out.println("Room: " + roomType);
-                System.out.println("Total: $" + total);
-            } else {
-                System.out.println("Error: Room not found.");
+            if (reservation != null) {
+                Client client = clientService.getClient(reservation.getClientId());
+
+                printInvoice(reservation, client);
             }
 
-        } catch (SQLException e) {
-            System.err.println("Database error: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Error al generar la factura: " + e.getMessage());
         }
+    }
+
+    private void printInvoice(Reservation reservation, Client client) {
+        System.out.println("Factura generada para la reserva #" + reservation.getId());
+        System.out.println("Cliente: " + client.getName());
+        System.out.println("Total: $" + calculateTotal(reservation));
+    }
+
+    // Método para calcular el total de la factura
+    private double calculateTotal(Reservation reservation) {
+        return 100.0 * reservation.getCheckOutDate().until(reservation.getCheckInDate()).getDays();
     }
 }

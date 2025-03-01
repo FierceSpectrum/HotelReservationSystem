@@ -1,35 +1,53 @@
 package com.hotel.services;
 
-import com.hotel.models.Reservation;
+import com.hotel.utils.DatabaseConnection;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 public class ReportService {
-    private static final Logger LOGGER = Logger.getLogger(ReportService.class.getName());
+    private final DatabaseConnection databaseConnection;
 
-    private final int totalRooms; // Total de habitaciones en el hotel
-
-    public ReportService(int totalRooms) {
-        this.totalRooms = totalRooms;
+    // Constructor que recibe una instancia de DatabaseConnection
+    public ReportService(DatabaseConnection databaseConnection) {
+        this.databaseConnection = databaseConnection;
     }
 
     // Generates a report of the hotel's occupancy
-    public void generateOccupancyReport(List<Reservation> reservations) {
-        LocalDate today = LocalDate.now();
+    public int getOccupiedRooms(LocalDate startDate, LocalDate endDate) {
+        String sql = "SELECT COUNT(*) AS occupied_rooms FROM reservations WHERE check_in_date <= ? AND check_out_date >= ?";
+        if (startDate == null || endDate == null) {
+            throw new IllegalArgumentException("Las fechas de inicio y fin no pueden ser nulas.");
+        }
 
-        // Filtrar reservas activas para hoy
-        List<Reservation> activeReservations = reservations.stream()
-                .filter(r -> !r.getCheckOutDate().isBefore(today) && !r.getCheckInDate().isAfter(today))
-                .collect(Collectors.toList());
+        try (Connection conn = databaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-        int occupiedRooms = activeReservations.size();
-        double occupancyRate = (double) occupiedRooms / totalRooms * 100;
+            stmt.setDate(1, Date.valueOf(endDate));
+            stmt.setDate(2, Date.valueOf(startDate));
 
-        LOGGER.info("==== Hotel Occupancy Report ====");
-        LOGGER.info("Total Reservations: " + reservations.size());
-        LOGGER.info("Occupied Rooms Today: " + occupiedRooms + " / " + totalRooms);
-        LOGGER.info("Occupancy Rate: " + String.format("%.2f", occupancyRate) + "%");
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next() ? rs.getInt("occupied_rooms") : 0;
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error al obtener el reporte de ocupación: " + e.getMessage());
+            return -1;
+        }
+
+    }
+
+    public void generateReport(LocalDate startDate, LocalDate endDate) {
+        int occupiedRooms = getOccupiedRooms(startDate, endDate);
+
+        if (occupiedRooms >= 0) {
+            System.out.println("Reporte de ocupación del " + startDate + " al " + endDate +
+                               ": " + occupiedRooms + " habitaciones ocupadas.");
+        } else {
+            System.err.println("No se pudo generar el reporte de ocupación.");
+        }
     }
 }
