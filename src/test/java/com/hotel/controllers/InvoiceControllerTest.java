@@ -20,6 +20,7 @@ public class InvoiceControllerTest {
     @BeforeMethod
     public void setUp() {
         MockitoAnnotations.openMocks(this);
+        invoiceController = new InvoiceController(invoiceService);
     }
 
     @Test

@@ -24,8 +24,6 @@ public class ClientService {
         try (Connection conn = databaseConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS)) {
 
-            System.out.println("Connection: " + conn); // Debug
-
             stmt.setString(1, client.getName());
             stmt.setString(2, client.getEmail());
             stmt.setString(3, client.getPhone());

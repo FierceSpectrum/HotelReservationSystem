@@ -26,6 +26,7 @@ public class ReservationControllerTest {
     @BeforeMethod
     public void setUp() {
         MockitoAnnotations.openMocks(this);
+        reservationController = new ReservationController(reservationService);
     }
 
     @Test

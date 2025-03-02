@@ -22,6 +22,7 @@ public class ReportControllerTest {
     @BeforeMethod
     public void setUp() {
         MockitoAnnotations.openMocks(this);
+        reportController = new ReportController(reportService);
     }
 
     @Test

@@ -26,13 +26,14 @@ public class ClientControllerTest {
     @BeforeMethod
     public void setUp() {
         MockitoAnnotations.openMocks(this);
+        clientController = new ClientController(clientService);
     }
 
     @Test
     public void testRegisterClient() {
         // Arrange
         Client client = new Client(1, "John Doe", "john@example.com", "123456789");
-        doNothing().when(clientService).saveClient(any(Client.class));
+        doNothing().when(clientService).saveClient(client);
 
         // Act
         clientController.registerClient("John Doe", "john@example.com", "123456789");

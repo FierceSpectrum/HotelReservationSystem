@@ -25,6 +25,7 @@ public class RoomControllerTest {
     @BeforeMethod
     public void setUp() {
         MockitoAnnotations.openMocks(this);
+        roomController = new RoomController(roomService);
     }
 
     @Test

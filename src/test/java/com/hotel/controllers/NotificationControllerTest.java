@@ -20,6 +20,7 @@ public class NotificationControllerTest {
     @BeforeMethod
     public void setUp() {
         MockitoAnnotations.openMocks(this);
+        notificationController = new NotificationController(notificationService);
     }
 
     @Test
