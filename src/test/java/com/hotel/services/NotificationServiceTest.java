@@ -46,8 +46,8 @@ class NotificationServiceTest {
     }
 
     @Test
-    public void testCreateNotifications() throws SQLException {
-        // Configurar el mock para executeQuery
+    public void testCreateNotifications_Success() throws SQLException {
+        // Arrange
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.next()).thenReturn(true, false);
         when(resultSet.getInt("id")).thenReturn(1);
@@ -57,10 +57,22 @@ class NotificationServiceTest {
         when(resultSet.getDate("check_out_date")).thenReturn(java.sql.Date.valueOf(LocalDate.now().plusDays(3)));
         when(resultSet.getString("status")).thenReturn("Active");
 
-        // Enviar notificaciones
+        // Act
         notificationService.createNotifications(1);
 
-        // Verificar que se llamó a executeQuery
+        // Assert
+        verify(preparedStatement, times(1)).executeQuery();
+    }
+
+    @Test
+    public void testCreateNotifications_Failure() throws SQLException {
+        // Arrange
+        when(preparedStatement.executeQuery()).thenThrow(new SQLException("Error al ejecutar la consulta"));
+
+        // Act
+        notificationService.createNotifications(1);
+
+        // Assert
         verify(preparedStatement, times(1)).executeQuery();
     }
 }

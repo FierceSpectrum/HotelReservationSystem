@@ -49,23 +49,35 @@ class InvoiceServiceTest {
     }
 
     @Test
-    public void testCreateInvoice() throws SQLException {
+    public void testCreateInvoice_Success() throws SQLException {
         // Arrange
         Reservation reservation = new Reservation(1, 1, 1, LocalDate.now(), LocalDate.now().plusDays(2), "Active");
         Client client = new Client(1, "John Doe", "john@example.com", "123456789");
         Room room = new Room(1, "Single", 100.0, true);
-
-        // Configurar el mock para executeQuery
         when(reservationService.getReservation(1)).thenReturn(reservation);
         when(clientService.getClient(1)).thenReturn(client);
         when(roomService.getRoom(1)).thenReturn(room);
 
-        // Generar la factura
+        // Act
         invoiceService.createInvoice(1);
 
-        // Verificar que se llamó a los métodos correspondientes
+        // Assert
         verify(reservationService, times(1)).getReservation(1);
         verify(clientService, times(1)).getClient(1);
         verify(roomService, times(1)).getRoom(1);
+    }
+
+    @Test
+    public void testCreateInvoice_Failure() throws SQLException {
+        // Arrange
+        when(reservationService.getReservation(1)).thenReturn(null);
+
+        // Act
+        invoiceService.createInvoice(1);
+
+        // Assert
+        verify(reservationService, times(1)).getReservation(1);
+        verify(clientService, never()).getClient(anyInt());
+        verify(roomService, never()).getRoom(anyInt());
     }
 }
