@@ -15,7 +15,39 @@ public class DatabaseConnection {
 
     // Constructor privado para evitar instanciación externa
     private DatabaseConnection() {
+       // Método para abrir el pool de conexiones
+        openPool();
+    }
+
+    // Método para obtener la instancia única (Singleton)
+    public static DatabaseConnection getInstance() {
+        if (instance == null) {
+            synchronized (DatabaseConnection.class) {
+                if (instance == null) {
+                    instance = new DatabaseConnection();
+                }
+            }
+        }
+        return instance;
+    }
+
+    // Método para obtener una conexión del pool
+    public Connection getConnection() throws SQLException {
+        if (dataSource != null && !dataSource.isClosed()) {
+            return dataSource.getConnection();
+        } else {
+            throw new SQLException("El pool de conexiones está cerrado.");
+        }
+    }
+
+    // Método para reabrir el pool de conexiones
+    public void openPool() {
         try {
+            if (dataSource != null && !dataSource.isClosed()) {
+                System.out.println("El pool de conexiones ya está abierto.");   
+                return;
+            }
+
             // Cargar las propiedades del archivo .env desde el classpath
             Properties env = new Properties();
             InputStream inputStream = DatabaseConnection.class.getClassLoader().getResourceAsStream(".env");
@@ -34,28 +66,12 @@ public class DatabaseConnection {
             config.setIdleTimeout(30000);
             config.setMaxLifetime(1800000);
 
+            // Inicializa el pool de conexiones
             dataSource = new HikariDataSource(config);
             System.out.println("Pool de conexiones configurado correctamente.");
         } catch (Exception e) {
             System.err.println("Error al configurar el poll de conexiones: " + e.getMessage());
         }
-    }
-
-    // Método para obtener la instancia única (Singleton)
-    public static DatabaseConnection getInstance() {
-        if (instance == null) {
-            synchronized (DatabaseConnection.class) {
-                if (instance == null) {
-                    instance = new DatabaseConnection();
-                }
-            }
-        }
-        return instance;
-    }
-
-    // Método para obtener una conexión del pool
-    public Connection getConnection() throws SQLException {
-        return dataSource.getConnection();
     }
 
     // Método para cerrar el pool de conexiones
@@ -64,5 +80,9 @@ public class DatabaseConnection {
             dataSource.close();
             System.out.println("Pool de conexiones cerrado.");
         }
+        else {
+            System.out.println("El pool de conexiones ya está cerrado.");
+        }
     }
+
 }
