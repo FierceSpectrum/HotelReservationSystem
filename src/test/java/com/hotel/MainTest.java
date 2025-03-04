@@ -8,8 +8,6 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.Scanner;
 
-import org.checkerframework.checker.units.qual.A;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -26,9 +24,6 @@ public class MainTest {
     private InputStream originalSystemIn;
 
     private Field scannerField;
-
-    // @InjectMocks
-    // private Main main;
 
     @BeforeMethod
     public void setUp() throws Exception {
