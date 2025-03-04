@@ -33,20 +33,20 @@ public class ClientControllerTest {
     public void testRegisterClient() {
         // Arrange
         Client client = new Client(1, "John Doe", "john@example.com", "123456789");
-        doNothing().when(clientService).saveClient(client);
+        doNothing().when(clientService).registerClient(client);
 
         // Act
         clientController.registerClient("John Doe", "john@example.com", "123456789");
 
         // Assert
-        verify(clientService, times(1)).saveClient(any(Client.class));
+        verify(clientService, times(1)).registerClient(any(Client.class));
     }
 
     @Test
     public void testFindClientById() {
         // Arrange
         Client client = new Client(1, "John Doe", "john@example.com", "123456789");
-        when(clientService.findClientById(1)).thenReturn(client);
+        when(clientService.getClient(1)).thenReturn(client);
 
         // Act
         Client foundClient = clientController.findClientById(1);
@@ -68,6 +68,7 @@ public class ClientControllerTest {
         List<Client> result = clientController.getAllClients();
 
         // Assert
+        assertFalse(clients.isEmpty());
         assertEquals(result.size(), 2);
     }
 

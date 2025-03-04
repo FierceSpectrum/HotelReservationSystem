@@ -9,36 +9,35 @@
   <url>http://maven.apache.org</url>
 
   <properties>
-    <argLine>-Dnet.bytebuddy.experimental=true</argLine>
+    <!-- Especificación de la codificación para evitar warnings de plataforma -->
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+    <maven.compiler.source>11</maven.compiler.source> <!-- Cambia la versión según tu JDK -->
+    <maven.compiler.target>11</maven.compiler.target>
+    <maven.compiler.release>11</maven.compiler.release> <!-- Asegúrate de que esta versión sea compatible -->
   </properties>
+
   <dependencies>
-    <!-- Dependencia de PostgreSQL -->
     <dependency>
         <groupId>org.postgresql</groupId>
         <artifactId>postgresql</artifactId>
         <version>42.6.0</version>
     </dependency>
-
-    <!-- Dependencia para manejo de .env -->
     <dependency>
         <groupId>io.github.cdimascio</groupId>
         <artifactId>dotenv-java</artifactId>
         <version>3.0.0</version>
     </dependency>
-
-   <!-- TestNG -->
     <dependency>
         <groupId>org.testng</groupId>
         <artifactId>testng</artifactId>
         <version>6.14.3</version>
         <scope>test</scope>
     </dependency>
-
-     <!-- Dependencia de Mockito -->
     <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
-        <version>3.9.0</version> <!-- Compatible with Java 8 -->
+        <version>3.9.0</version>
         <scope>test</scope>
     </dependency>
     <dependency>
@@ -47,32 +46,42 @@
         <version>5.5.0</version>
         <scope>test</scope>
     </dependency>
-
     <dependency>
         <groupId>com.zaxxer</groupId>
         <artifactId>HikariCP</artifactId>
         <version>3.4.5</version>
     </dependency>
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>1.7.30</version>
+    </dependency>
+    <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-classic</artifactId>
+        <version>1.2.3</version>
+    </dependency>
   </dependencies>
 
   <build>
     <plugins>
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <version>2.22.2</version>
-        </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.1</version>
+        <configuration>
+            <source>11</source> <!-- Versión de JDK -->
+            <target>11</target> <!-- Versión de JDK -->
+            <compilerArgs>
+                <arg>-Xlint:-options</arg> <!-- Desactiva advertencias innecesarias -->
+            </compilerArgs>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.22.2</version>
+      </plugin>
     </plugins>
-
-    <resources>
-        <resource>
-            <directory>src/main/resources</directory>
-            <includes>
-                <include>**/*.properties</include>
-                <include>**/*.env</include>
-            </includes>
-        </resource>
-    </resources>
   </build>
-  
 </project>

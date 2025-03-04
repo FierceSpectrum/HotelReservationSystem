@@ -26,12 +26,12 @@ public class NotificationControllerTest {
     @Test
     public void testSendCheckInNotifications() {
         // Arrange
-        doNothing().when(notificationService).sendNotifications(2);
+        doNothing().when(notificationService).createNotifications(2);
 
         // Act
         notificationController.sendCheckInNotifications(2);
 
         // Assert
-        verify(notificationService, times(1)).sendNotifications(2);
+        verify(notificationService, times(1)).createNotifications(2);
     }
 }

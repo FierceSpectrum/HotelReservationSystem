@@ -67,6 +67,7 @@ public class ReservationControllerTest {
         List<Reservation> result = reservationController.getClientReservations(1);
 
         // Assert
+        assertFalse(result.isEmpty());
         assertEquals(result.size(), 2);
     }
 }

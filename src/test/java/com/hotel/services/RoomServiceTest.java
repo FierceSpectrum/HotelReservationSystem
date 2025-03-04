@@ -37,21 +37,20 @@ class RoomServiceTest {
     private RoomService roomService;
 
     @BeforeMethod
-    void setUp() throws SQLException {
+    public void setUp() throws SQLException {
         MockitoAnnotations.openMocks(this);
 
         // Asegurar que el servicio usa el mock de DatabaseConnection
         roomService = new RoomService(databaseConnection);
 
-        // Configurar el comportamiento de los mocks para ambos tipos de
-        // prepareStatement
+        // Configurar el comportamiento de los mocks
         when(databaseConnection.getConnection()).thenReturn(connection);
         when(connection.prepareStatement(any())).thenReturn(preparedStatement);
         when(connection.prepareStatement(any(), anyInt())).thenReturn(preparedStatement);
     }
 
     @Test
-    void testSaveRoom() throws SQLException {
+    public void testRegisterRoom() throws SQLException {
         // Configurar el mock para executeUpdate y getGeneratedKeys
         when(preparedStatement.executeUpdate()).thenReturn(1);
         when(preparedStatement.getGeneratedKeys()).thenReturn(resultSet);
@@ -59,10 +58,10 @@ class RoomServiceTest {
         when(resultSet.getInt(1)).thenReturn(1);
 
         // Crar una habitación
-        Room room = new Room(1, "Single", 100.0, true);
+        Room room = new Room(0, "Single", 100.0, true);
 
         // Guardar la habitación
-        roomService.saveRoom(room);
+        roomService.registerRoom(room);
 
         // Verificar que se asignó el ID
         assertEquals(1, room.getId());
@@ -72,28 +71,50 @@ class RoomServiceTest {
     }
 
     @Test
-    void testGetAllRooms() throws SQLException {
+    public void testGetRoom() throws SQLException {
         // Configurar el mock para executeQuery
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
-        when(resultSet.next()).thenReturn(true, false);
+        when(resultSet.next()).thenReturn(true);
         when(resultSet.getInt("id")).thenReturn(1);
         when(resultSet.getString("type")).thenReturn("Single");
         when(resultSet.getDouble("price")).thenReturn(100.0);
         when(resultSet.getBoolean("available")).thenReturn(true);
 
         // Obtener todas las habitaciones
-        List<Room> rooms = roomService.getAllRooms();
+        Room foundRoom = roomService.getRoom(1);
 
-        // Verificar que la lista no esté vacía
-        assertFalse(rooms.isEmpty());
-        assertEquals(1, rooms.size());
+        // Verificar que la habitación se encontró correctamente
+        assertNotNull(foundRoom);
+        assertEquals(foundRoom.getId(), 1);
+        assertEquals(foundRoom.getType(), "Single");
 
         // Verificar que se llamó a executeQuery
         verify(preparedStatement, times(1)).executeQuery();
     }
 
     @Test
-    void testUpdateRoom() throws SQLException {
+    public void testSearchRooms() throws SQLException {
+        // Configurar el mock para executeQuery
+        when(preparedStatement.executeQuery()).thenReturn(resultSet);
+        when(resultSet.next()).thenReturn(true).thenReturn(false);
+        when(resultSet.getInt("id")).thenReturn(1);
+        when(resultSet.getString("type")).thenReturn("Single");
+        when(resultSet.getDouble("price")).thenReturn(100.0);
+        when(resultSet.getBoolean("available")).thenReturn(true);
+
+        // Obtener todas las habitaciones de tipo Single
+        List<Room> rooms = roomService.searchRooms("Single", null, null);
+
+        // Verificar que la lista no esté vacía
+        assertFalse(rooms.isEmpty());
+        assertEquals(rooms.size(), 1);
+
+        // Verificar que se llamó a executeQuery
+        verify(preparedStatement, times(1)).executeQuery();
+    }
+
+    @Test
+    public void testUpdateRoom() throws SQLException {
         // Configurar el mock para executeUpdate
         when(preparedStatement.executeUpdate()).thenReturn(1);
 
@@ -108,7 +129,7 @@ class RoomServiceTest {
     }
 
     @Test
-    void testDeleteRoom() throws SQLException {
+    public void testDeleteRoom() throws SQLException {
         // Configurar el mock para executeUpdate
         when(preparedStatement.executeUpdate()).thenReturn(1);
 

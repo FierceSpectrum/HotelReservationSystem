@@ -12,8 +12,6 @@ public class NotificationController {
 
     // Enviar notificación de check-in
     public void sendCheckInNotifications(int daysBefore) {
-        notificationService.sendNotifications(daysBefore);
-        System.out.println("Notificación enviada correctamente");
+        notificationService.createNotifications(daysBefore);
     }
-
 }

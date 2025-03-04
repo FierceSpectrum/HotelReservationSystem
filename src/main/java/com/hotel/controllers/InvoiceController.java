@@ -12,7 +12,6 @@ public class InvoiceController {
 
     // Generar una factura
     public void generateInvoice(int reservationId) {
-        invoiceService.generateInvoice(reservationId);
-        System.out.println("Factura generada correctamente");
+        invoiceService.createInvoice(reservationId);
     }
 }

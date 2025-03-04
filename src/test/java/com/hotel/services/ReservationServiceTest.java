@@ -23,6 +23,9 @@ import static org.testng.Assert.*;
 class ReservationServiceTest {
 
     @Mock
+    private RoomService roomService;
+
+    @Mock
     private DatabaseConnection databaseConnection;
 
     @Mock
@@ -38,21 +41,20 @@ class ReservationServiceTest {
     private ReservationService reservationService;
 
     @BeforeMethod
-    void setUp() throws SQLException {
+    public void setUp() throws SQLException {
         MockitoAnnotations.openMocks(this);
 
         // Asegurar que el servicio usa el mock de DatabaseConnection
-        reservationService = new ReservationService(databaseConnection);
+        reservationService = new ReservationService(databaseConnection, roomService);
 
-        // Configurar el comportamiento de los mocks para ambos tipos de
-        // prepareStatement
+        // Configurar el comportamiento de los mocks
         when(databaseConnection.getConnection()).thenReturn(connection);
         when(connection.prepareStatement(any())).thenReturn(preparedStatement);
         when(connection.prepareStatement(any(), anyInt())).thenReturn(preparedStatement);
     }
 
     @Test
-    void testCreateReservation() throws SQLException {
+    public void testCreateReservation() throws SQLException {
         // Configurar el mock para executeUpdate y getGeneratedKeys
         when(preparedStatement.executeUpdate()).thenReturn(1);
         when(preparedStatement.getGeneratedKeys()).thenReturn(resultSet);
@@ -66,26 +68,29 @@ class ReservationServiceTest {
         reservationService.createReservation(reservation);
 
         // Verficar que se asignó un ID
-        assertEquals(1, reservation.getId());
+        assertEquals(reservation.getId(), 1);
 
         // Verificar que se llamó a executeUpdate
         verify(preparedStatement, times(1)).executeUpdate();
     }
 
     @Test
-    void testCancelReservation() throws SQLException {
+    public void testCancelReservation() throws SQLException {
         // Configurar el mock para executeUpdate
         when(preparedStatement.executeUpdate()).thenReturn(1);
+        when(preparedStatement.executeQuery()).thenReturn(resultSet);
+        when(resultSet.next()).thenReturn(true);
 
         // Cancelar la reserva
         reservationService.cancelReservation(1);
 
         // Verificar que se llamó a executeUpdate
         verify(preparedStatement, times(1)).executeUpdate();
+        verify(preparedStatement, times(1)).executeQuery();
     }
 
     @Test
-    void testGetReservationHistory() throws SQLException {
+    public void testGetReservationHistory() throws SQLException {
         // Configurar el mock para executeQuery
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.next()).thenReturn(true, false);
@@ -101,7 +106,7 @@ class ReservationServiceTest {
 
         // Verificar que la lista no está vacía
         assertFalse(reservations.isEmpty());
-        assertEquals(1, reservations.size());
+        assertEquals(reservations.size(), 1);
 
         // Verificar que se llamó a executeQuery
         verify(preparedStatement, times(1)).executeQuery();

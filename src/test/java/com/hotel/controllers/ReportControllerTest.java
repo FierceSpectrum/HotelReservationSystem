@@ -30,12 +30,12 @@ public class ReportControllerTest {
         // Arrange
         LocalDate startDate = LocalDate.now();
         LocalDate endDate = LocalDate.now().plusDays(7);
-        doNothing().when(reportService).generateOccupancyReport(startDate, endDate);
+        doNothing().when(reportService).generateReport(startDate, endDate);
 
         // Act
         reportController.generateOccupancyReport(startDate, endDate);
 
         // Assert
-        verify(reportService, times(1)).generateOccupancyReport(startDate, endDate);
+        verify(reportService, times(1)).generateReport(startDate, endDate);
     }
 }

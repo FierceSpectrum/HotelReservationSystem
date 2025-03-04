@@ -12,6 +12,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -42,15 +43,14 @@ public class ClientServiceTest {
         // Asegurar que el servicio usa el mock de DatabaseConnection
         clientService = new ClientService(databaseConnection);
 
-        // Configurar el comportamiento de los mocks para ambos tipos de
-        // prepareStatement
+        // Configurar el comportamiento de los mocks
         when(databaseConnection.getConnection()).thenReturn(connection);
         when(connection.prepareStatement(any())).thenReturn(preparedStatement);
         when(connection.prepareStatement(any(), anyInt())).thenReturn(preparedStatement);
     }
 
     @Test
-    public void testSaveClient() throws SQLException {
+    public void testRegisterClient() throws SQLException {
         // Configurar el mock para executeUpdate y getGeneratedKeys
         when(preparedStatement.executeUpdate()).thenReturn(1);
         when(preparedStatement.getGeneratedKeys()).thenReturn(resultSet);
@@ -61,7 +61,7 @@ public class ClientServiceTest {
         Client client = new Client(0, "John Doe", "john@example.com", "123456789");
 
         // Guardar el cliente
-        clientService.saveClient(client);
+        clientService.registerClient(client);
 
         // Verificar que se asignó el ID
         assertEquals(client.getId(), 1);
@@ -71,7 +71,31 @@ public class ClientServiceTest {
     }
 
     @Test
-    public void testFindClientById() throws SQLException {
+    public void testGetAllClients() throws SQLException {
+        // Configurar el mock para executeQuery
+        when(preparedStatement.executeQuery()).thenReturn(resultSet);
+        when(resultSet.next()).thenReturn(true, false);
+        when(resultSet.getInt("id")).thenReturn(1);
+        when(resultSet.getString("name")).thenReturn("John Doe");
+        when(resultSet.getString("email")).thenReturn("john@example.com");
+        when(resultSet.getString("phone")).thenReturn("123456789");
+
+        // Obtener todos los clientes
+        List<Client> clients = clientService.getAllClients();
+
+        // Verificar que se obtuvieron los clientes correctamente
+        assertNotNull(clients, "La lista de clientes no debe ser nula.");
+        assertEquals(clients.size(), 1);
+        assertEquals(clients.get(0).getName(), "John Doe");
+        assertEquals(clients.get(0).getEmail(), "john@example.com");
+
+        // Verificar que se llamó a executeQuery
+        verify(preparedStatement, times(1)).executeQuery();
+
+    }
+
+    @Test
+    public void testGetClient() throws SQLException {
         // Configurar el mock para executeQuery
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.next()).thenReturn(true); // Simular que hay un resultado
@@ -81,14 +105,42 @@ public class ClientServiceTest {
         when(resultSet.getString("phone")).thenReturn("123456789");
 
         // Buscar el cliente por ID
-        Client foundClient = clientService.findClientById(1);
+        Client foundClient = clientService.getClient(1);
 
         // Verificar que el cliente se encontró correctamente
         assertNotNull(foundClient, "El cliente no debe ser nulo.");
         assertEquals(foundClient.getId(), 1);
         assertEquals(foundClient.getName(), "John Doe");
+        assertEquals(foundClient.getEmail(), "john@example.com");
 
         // Verificar que se llamó a executeQuery
         verify(preparedStatement, times(1)).executeQuery();
+    }
+
+    @Test
+    public void testUpdateClient() throws SQLException {
+        // Configurar el mock para executeUpdate
+        when(preparedStatement.executeUpdate()).thenReturn(1);
+
+        // Crear cliente
+        Client client = new Client(1, "John Doe", "john@example.com", "123456789");
+
+        // Actualizar el cliente
+        clientService.updateClient(client);
+
+        // Verificar que se llamó a executeQuery
+        verify(preparedStatement, times(1)).executeUpdate();
+    }
+
+    @Test
+    public void testDeleteClient() throws SQLException {
+        // Configurar el mock para executeUpdate
+        when(preparedStatement.executeUpdate()).thenReturn(1);
+
+
+        clientService.deleteClient(1);
+
+        // Verificar que se llamó a executeUpdate
+        verify(preparedStatement, times(1)).executeUpdate();
     }
 }

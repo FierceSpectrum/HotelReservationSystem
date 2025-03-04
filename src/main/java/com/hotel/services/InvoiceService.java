@@ -1,52 +1,49 @@
 package com.hotel.services;
 
+import com.hotel.models.Client;
 import com.hotel.models.Reservation;
-import com.hotel.utils.DatabaseConnection;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 
 public class InvoiceService {
 
-    private final DatabaseConnection databaseConnection;
+    private final ReservationService reservationService;
+    private final ClientService clientService;
+    private final RoomService roomService;
 
-    // Constructor que recibe una instancia de DatabaseConnection
-    public InvoiceService(DatabaseConnection databaseConnection) {
-        this.databaseConnection = databaseConnection;
+    // Constructor que recibe instancias de ReservationService, ClientService y RoomService
+    public InvoiceService(ReservationService reservationService, ClientService clientService, RoomService roomService) {
+        this.reservationService = reservationService;
+        this.clientService = clientService;
+        this.roomService = roomService;
     }
 
-    // Método para generar una factura
-    public void generateInvoice(int reservationId) {
-        String query = "SELECT * FROM reservations WHERE id = ?";
-        try (Connection conn = databaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setInt(1, reservationId);
-            ResultSet rs = stmt.executeQuery();
+    public void createInvoice(int reservationId) {
+        try {
 
-            if (rs.next()) {
-                Reservation reservation = new Reservation(
-                    rs.getInt("id"),
-                    rs.getInt("client_id"),
-                    rs.getInt("room_id"),
-                    rs.getDate("check_in_date").toLocalDate(),
-                    rs.getDate("check_out_date").toLocalDate(),
-                    rs.getString("status")
-                );
+            Reservation reservation = reservationService.getReservation(reservationId);
 
-                // Simular la generación de la factura
-                System.out.println("Factura generada para la reserva " + reservation.getId() +
-                                   " del cliente " + reservation.getClientId() +
-                                   " con un total de $" + calculateTotal(reservation));
+            if (reservation != null) {
+                Client client = clientService.getClient(reservation.getClientId());
+                printInvoice(reservation, client);
+            } else {
+                System.out.println("No se encontró la reserva con ID: " + reservationId);
             }
-        } catch (SQLException e) {
+
+        } catch (Exception e) {
             System.err.println("Error al generar la factura: " + e.getMessage());
         }
     }
 
+    private void printInvoice(Reservation reservation, Client client) {
+        String invoiceMessage = "Factura generada para la reserva #" + reservation.getId() + "\n"
+                + "Cliente: " + client.getName() + "\n"
+                + "Total: $" + calculateTotal(reservation);
+        System.out.println(invoiceMessage);
+    }
+
     // Método para calcular el total de la factura
     private double calculateTotal(Reservation reservation) {
-        // Simular un cálculo basado en el precio de la habitación y la duración de la estadía
-        return 100.0 * reservation.getCheckOutDate().until(reservation.getCheckInDate()).getDays();
+        double roomPrice = roomService.getRoom(reservation.getRoomId()).getPrice();
+        int days = reservation.getCheckOutDate().until(reservation.getCheckInDate()).getDays();
+        return roomPrice * days;
     }
 }

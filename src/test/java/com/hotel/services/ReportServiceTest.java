@@ -7,6 +7,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,6 +17,7 @@ import java.time.LocalDate;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
+import static org.testng.Assert.*;
 
 class ReportServiceTest {
 
@@ -34,7 +37,7 @@ class ReportServiceTest {
     private ReportService reportService;
 
     @BeforeMethod
-    void setUp() throws SQLException {
+    public void setUp() throws SQLException {
         MockitoAnnotations.openMocks(this);
 
         // Asegurar que el servicio usa el mock de DatabaseConnection
@@ -46,14 +49,25 @@ class ReportServiceTest {
     }
 
     @Test
-    void testGenerateOccupancyReport_Success() throws SQLException {
+    public void testGenerateReport() throws SQLException {
         // Configurar el mock para executeQuery
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.next()).thenReturn(true);
         when(resultSet.getInt("occupied_rooms")).thenReturn(5);
 
-        // Generar el reporte de ocupación
-        reportService.generateOccupancyReport(LocalDate.now(), LocalDate.now().plusDays(7));
+        // Capturar la salida impresa en consola
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent));
+
+        // Ejecutar el método
+        reportService.generateReport(LocalDate.now(), LocalDate.now().plusDays(3));
+
+        // Verificar que la salida sea la esperada
+        String expectedOutput = "Reporte de ocupación del " + LocalDate.now() + " al " + LocalDate.now().plusDays(3) + ": 5 habitaciones ocupadas.\n";
+        assertEquals(outContent.toString().trim(), expectedOutput.trim());
+
+        // Restaurar la salida estándar
+        System.setOut(System.out);
 
         // Verificar que se llamó a executeQuery
         verify(preparedStatement, times(1)).executeQuery();

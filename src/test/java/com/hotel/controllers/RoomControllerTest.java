@@ -32,39 +32,39 @@ public class RoomControllerTest {
     public void testRegisterRoom() {
         // Arrange
         Room room = new Room(1, "Single", 100.0, true);
-        doNothing().when(roomService).saveRoom(room);
+        doNothing().when(roomService).registerRoom(room);
 
         // Act
         roomController.registerRoom("Single", 100.0, true);
 
         // Assert
-        verify(roomService, times(1)).saveRoom(any(Room.class));
+        verify(roomService, times(1)).registerRoom(any(Room.class));
     }
 
     @Test
-    public void testFindRoomsByType() {
+    public void testsearchRooms() {
         // Arrange
         List<Room> rooms = Arrays.asList(
             new Room(1, "Single", 100.0, true),
-            new Room(2, "Double", 150.0, true)
+            new Room(2, "Single", 150.0, false)
         );
-        when(roomService.findRoomsByType("Single")).thenReturn(rooms);
+        when(roomService.searchRooms("Single", null, null)).thenReturn(rooms);
 
         // Act
-        List<Room> result = roomController.findRoomByType("Single");
+        List<Room> result = roomController.findRoomByType("Single", null, null);
 
         // Assert
         assertEquals(result.size(), 2);
     }
 
     @Test
-    public void testGetAllRooms() {
+    public void testsearchAllRooms() {
         // Arrange
         List<Room> rooms = Arrays.asList(
             new Room(1, "Single", 100.0, true),
             new Room(2, "Double", 150.0, true)
         );
-        when(roomService.getAllRooms()).thenReturn(rooms);
+        when(roomService.searchRooms(null, null, null)).thenReturn(rooms);
 
         // Act
         List<Room> result = roomController.getAllRooms();

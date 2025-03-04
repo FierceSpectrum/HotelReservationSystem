@@ -13,7 +13,6 @@ public class ReportController {
 
     // Generar un reporte de ocupación
     public void generateOccupancyReport(LocalDate startDate, LocalDate endDate) {
-        reportService.generateOccupancyReport(startDate, endDate);
-        System.out.println("Reporte de ocupación generado correctamente");
+        reportService.generateReport(startDate, endDate);
     }
 }

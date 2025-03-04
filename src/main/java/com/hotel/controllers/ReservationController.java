@@ -17,7 +17,7 @@ public class ReservationController {
     public void createReservation(int clientId, int roomId, LocalDate checkIn, LocalDate checkOut, String satus) {
         Reservation reservation = new Reservation(0, clientId, roomId, checkIn, checkOut, satus);
         reservationService.createReservation(reservation);
-        System.out.println("Reserva creada correctamente");
+        System.out.println("Reserva creada correctamente con ID: " + reservation.getId());
     }
 
     // Cancelar una reserva
@@ -28,6 +28,8 @@ public class ReservationController {
 
     // Obtener el historial de reservas de un cliente
     public List<Reservation> getClientReservations(int clientId) {
-        return reservationService.getReservationHistory(clientId);
+        List<Reservation> reservations = reservationService.getReservationHistory(clientId);
+        System.out.println("Total de reservas encontradas: " + reservations.size());
+        return reservations;
     }
 }

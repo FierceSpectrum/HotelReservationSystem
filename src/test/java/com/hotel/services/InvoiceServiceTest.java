@@ -1,6 +1,8 @@
 package com.hotel.services;
 
-import com.hotel.utils.DatabaseConnection;
+import com.hotel.models.Client;
+import com.hotel.models.Reservation;
+import com.hotel.models.Room;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -13,13 +15,18 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 class InvoiceServiceTest {
 
     @Mock
-    private DatabaseConnection databaseConnection;
+    private ReservationService reservationService;
+    
+    @Mock
+    private ClientService clientService;
+    
+    @Mock
+    private RoomService roomService;
 
     @Mock
     private Connection connection;
@@ -34,33 +41,31 @@ class InvoiceServiceTest {
     private InvoiceService invoiceService;
 
     @BeforeMethod
-    void setUp() throws SQLException {
+    public void setUp() throws SQLException {
         MockitoAnnotations.openMocks(this);
 
         // Asegurar que el servicio usa el mock de DatabaseConnection
-        invoiceService = new InvoiceService(databaseConnection);
-
-        // Configurar el comportamiento de los mocks
-        when(databaseConnection.getConnection()).thenReturn(connection);
-        when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
+        invoiceService = new InvoiceService(reservationService, clientService, roomService);
     }
 
     @Test
-    void testGenerateInvoice_Success() throws SQLException {
+    public void testCreateInvoice() throws SQLException {
+        // Arrange
+        Reservation reservation = new Reservation(1, 1, 1, LocalDate.now(), LocalDate.now().plusDays(2), "Active");
+        Client client = new Client(1, "John Doe", "john@example.com", "123456789");
+        Room room = new Room(1, "Single", 100.0, true);
+
         // Configurar el mock para executeQuery
-        when(preparedStatement.executeQuery()).thenReturn(resultSet);
-        when(resultSet.next()).thenReturn(true);
-        when(resultSet.getInt("id")).thenReturn(1);
-        when(resultSet.getInt("client_id")).thenReturn(1);
-        when(resultSet.getInt("room_id")).thenReturn(1);
-        when(resultSet.getDate("check_in_date")).thenReturn(java.sql.Date.valueOf(LocalDate.now()));
-        when(resultSet.getDate("check_out_date")).thenReturn(java.sql.Date.valueOf(LocalDate.now().plusDays(2)));
-        when(resultSet.getString("status")).thenReturn("Active");
+        when(reservationService.getReservation(1)).thenReturn(reservation);
+        when(clientService.getClient(1)).thenReturn(client);
+        when(roomService.getRoom(1)).thenReturn(room);
 
         // Generar la factura
-        invoiceService.generateInvoice(1);
+        invoiceService.createInvoice(1);
 
-        // Verificar que se llamó a executeQuery
-        verify(preparedStatement, times(1)).executeQuery();
+        // Verificar que se llamó a los métodos correspondientes
+        verify(reservationService, times(1)).getReservation(1);
+        verify(clientService, times(1)).getClient(1);
+        verify(roomService, times(1)).getRoom(1);
     }
 }

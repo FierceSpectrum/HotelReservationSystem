@@ -26,12 +26,12 @@ public class InvoiceControllerTest {
     @Test
     public void testGenerateInvoice() {
         // Arrange
-        doNothing().when(invoiceService).generateInvoice(1);
+        doNothing().when(invoiceService).createInvoice(1);
 
         // Act
         invoiceController.generateInvoice(1);
 
         // Assert
-        verify(invoiceService, times(1)).generateInvoice(1);
+        verify(invoiceService, times(1)).createInvoice(1);
     }
 }
