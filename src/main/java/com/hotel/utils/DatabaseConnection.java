@@ -23,7 +23,7 @@ public class DatabaseConnection {
                 throw new RuntimeException("No se pudo encontrar el archivo .env en el classpath.");
             }
             env.load(inputStream);
-
+          
             // Configurar HikariCP
             HikariConfig config = new HikariConfig();
             config.setJdbcUrl(env.getProperty("DB_URL"));
