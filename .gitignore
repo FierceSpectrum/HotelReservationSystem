@@ -1,0 +1,17 @@
+# Archivos de entorno
+.env
+
+# Archivos de configuración (si contienen credenciales)
+# application.properties
+
+# Carpeta generada por Maven
+target/
+
+# Archivos de IDE
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.vscode/
+bin/

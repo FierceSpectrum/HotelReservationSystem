@@ -60,6 +60,7 @@ public class ClientService {
         } catch (SQLException e) {
             System.err.println("Error al obtener los clientes: " + e.getMessage());
         }
+        System.out.println("Clientes obtenidos correctamente.");
         return clients;
     }
 
@@ -74,6 +75,7 @@ public class ClientService {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
+                    System.out.println("Cliente encontrado correctamente.");
                     return new Client(
                             rs.getInt("id"),
                             rs.getString("name"),
@@ -111,10 +113,24 @@ public class ClientService {
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, clientId);
+            stmt.executeUpdate();
 
             System.out.println("Cliente eliminado correctamente");
         } catch (SQLException e) {
             System.err.println("Error al eliminar un cliente: " + e.getMessage());
         }
+    }
+
+    // Obtiene un cliente por su email
+    public Client getClientByEmail(String email) {
+        List<Client> clients = getAllClients();
+        for (Client client : clients) {
+            if (client.getEmail().equalsIgnoreCase(email)) {
+                System.out.println("Cliente encontrado correctamente.");
+                return client;
+            }
+        }
+        System.err.println("Cliente no encontrado con el email: " + email);
+        return null;
     }
 }

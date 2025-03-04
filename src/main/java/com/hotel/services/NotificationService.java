@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,12 +20,16 @@ public class NotificationService {
     }
 
     // Envía notificaciones a las clientes para los próximos check-ins
-    public void sendNotifications() {
+    public void createNotifications(int dayBefore) {
         List<Reservation> reservations = new ArrayList<>();
-        String query = "SELECT * FROM reservations WHERE check_in_date = CURRENT_DATE + INTERVAL '1 day'";
+        String query = "SELECT * FROM reservations WHERE check_in_date BETWEEN ? AND ?";
+        LocalDate today = LocalDate.now();
+        LocalDate futureDate = today.plusDays(dayBefore);
 
         try (Connection conn = databaseConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setDate(1, java.sql.Date.valueOf(today));
+            stmt.setDate(2, java.sql.Date.valueOf(futureDate));
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
@@ -47,8 +52,8 @@ public class NotificationService {
     }
 
     private void sendNotification(Reservation reservation) {
-        String message = "Notificación enviada al cliente " + reservation.getClientId() + " para la reserva " + 
-                          reservation.getId() + " con fecha del check-in: " + reservation.getCheckInDate();
+        String message = "Notificación enviada al cliente " + reservation.getClientId() + " para la reserva " +
+                reservation.getId() + " con fecha del check-in: " + reservation.getCheckInDate();
         System.out.println(message);
     }
 }

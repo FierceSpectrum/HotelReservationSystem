@@ -17,11 +17,12 @@ public class ReportService {
     }
 
     // Generates a report of the hotel's occupancy
-    public int getOccupiedRooms(LocalDate startDate, LocalDate endDate) {
-        String sql = "SELECT COUNT(*) AS occupied_rooms FROM reservations WHERE check_in_date <= ? AND check_out_date >= ?";
-        if (startDate == null || endDate == null) {
-            throw new IllegalArgumentException("Las fechas de inicio y fin no pueden ser nulas.");
+    private int getOccupiedRooms(LocalDate startDate, LocalDate endDate) {
+        if (!validateDates(startDate, endDate)) {
+            throw new IllegalArgumentException("Las fechas de inicio y fin no pueden ser nulas y la fecha de inicio debe ser menor que la fecha de fin.");
         }
+
+        String sql = "SELECT COUNT(*) AS occupied_rooms FROM reservations WHERE check_in_date <= ? AND check_out_date >= ?";
 
         try (Connection conn = databaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -43,11 +44,13 @@ public class ReportService {
     public void generateReport(LocalDate startDate, LocalDate endDate) {
         int occupiedRooms = getOccupiedRooms(startDate, endDate);
 
-        if (occupiedRooms >= 0) {
-            System.out.println("Reporte de ocupación del " + startDate + " al " + endDate +
-                               ": " + occupiedRooms + " habitaciones ocupadas.");
-        } else {
-            System.err.println("No se pudo generar el reporte de ocupación.");
-        }
+        String reportMessage = occupiedRooms >= 0 ?
+                "Reporte de ocupación del " + startDate + " al " + endDate + ": " + occupiedRooms + " habitaciones ocupadas." :
+                "No se pudo generar el reporte de ocupación.";
+        System.out.println(reportMessage);
+    }
+
+    private boolean validateDates(LocalDate startDate, LocalDate endDate) {
+        return startDate != null && endDate != null && startDate.isBefore(endDate);
     }
 }

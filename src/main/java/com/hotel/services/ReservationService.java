@@ -46,47 +46,40 @@ public class ReservationService {
 
     // Cancela una reserva y actualiza la disponibilidad de la habitación
     public void cancelReservation(int reservationId) {
-        String sql = "DELETE FROM reservations WHERE id = ?";
+        String getRoomSql = "SELECT room_id FROM reservations WHERE id = ?";
+        String deleteSql = "DELETE FROM reservations WHERE id = ?";
 
         try (Connection conn = databaseConnection.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement getRoomStmt = conn.prepareStatement(getRoomSql);
+                PreparedStatement deleteStmt = conn.prepareStatement(deleteSql)) {
 
             conn.setAutoCommit(false); // Inicia transacción
 
-            stmt.setInt(1, reservationId);
-            int rowsAffected = stmt.executeUpdate();
+            // Obtener room_id antes de eliminar la reserva
+            getRoomStmt.setInt(1, reservationId);
+            int roomId = -1;
+            try (ResultSet rs = getRoomStmt.executeQuery()) {
+                if (!rs.next()) {
+                    System.err.println("No se encontró una habitación para la reservación con ID: " + reservationId);
+                    return;
+                }
+                roomId = rs.getInt("room_id");
+            }
 
-            if (rowsAffected > 0) {
-                updateRoomAvailabilityAfterCancellation(reservationId);
-                conn.commit();
-                System.out.println("Reserva " + reservationId + " cancelada correctamente");
-            } else {
+            // Eliminar la reserva
+            deleteStmt.setInt(1, reservationId);
+            int rowsAffected = deleteStmt.executeUpdate();
+
+            if (rowsAffected <= 0) {
                 conn.rollback();
                 System.err.println("Error al cancelar la reserva " + reservationId);
+                return;
             }
+            roomService.updateAvailability(roomId, true);
+            conn.commit();
+            System.out.println("Reserva " + reservationId + " cancelada correctamente");
         } catch (SQLException e) {
             System.err.println("Error al cancelar la reserva: " + e.getMessage());
-        }
-    }
-
-    // Método auxiliar para actualizar la disponibilidad de una habitación tras
-    // cancelar una reserva
-    private void updateRoomAvailabilityAfterCancellation(int reservationId) {
-        String sql = "SELECT room_id FROM reservations WHERE id = ?";
-        int roomId = -1;
-
-        try (Connection conn = databaseConnection.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, reservationId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    roomId = rs.getInt("roomId");
-                    roomService.updateAvailability(roomId, true);
-                }
-            }
-        } catch (SQLException e) {
-            System.err.println("Error al actualizar disponibilidad de la habitación para la reservación "
-                    + reservationId + ": " + e.getMessage());
         }
     }
 

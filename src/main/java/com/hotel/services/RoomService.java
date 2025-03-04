@@ -45,24 +45,58 @@ public class RoomService {
         }
     }
 
+    // Busca una habitación por su ID
+    public Room getRoom(int roomId) {
+        String sql = "SELECT * FROM rooms WHERE id = ?";
+
+        try (Connection conn = databaseConnection.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, roomId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (!rs.next()) {
+                    System.err.println("No se encontró la habitación con ID: " + roomId);
+                    return null;
+                }
+
+                return new Room(
+                        rs.getInt("id"),
+                        rs.getString("type"),
+                        rs.getDouble("price"),
+                        rs.getBoolean("available"));
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al obtener la habitación: " + e.getMessage());
+        }
+
+        return null;
+    }
+
     // Busca habitaciones según tipo, precio y disponibilidad
     public List<Room> searchRooms(String type, Double price, Boolean available) {
-        StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM rooms WHERE 1=1");
+        List<String> conditions = new ArrayList<>();
         List<Object> params = new ArrayList<>();
 
-        if (type != null) {
-            sqlBuilder.append(" AND type = ?");
+        // Añadir condiciones solo si los parámetros no son nulos
+        if (type != null && !type.trim().isEmpty()) {
+            conditions.add("type = ?");
             params.add(type);
         }
 
-        if (price != null) {
-            sqlBuilder.append(" AND price <= ?");
+        if (price != null && price >= 0) {
+            conditions.add("price <= ?");
             params.add(price);
         }
 
         if (available != null) {
-            sqlBuilder.append(" AND available = ?");
+            conditions.add("available = ?");
             params.add(available);
+        }
+
+        StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM rooms");
+        if (!conditions.isEmpty()) {
+            sqlBuilder.append(" WHERE ").append(String.join(" AND ", conditions));
         }
 
         String sql = sqlBuilder.toString();
@@ -73,14 +107,7 @@ public class RoomService {
 
             // Establecer los parámetros dinámicos
             for (int i = 0; i < params.size(); i++) {
-                Object param = params.get(i);
-                if (param instanceof String) {
-                    stmt.setString(i + 1, (String) param);
-                } else if (param instanceof Double) {
-                    stmt.setDouble(i + 1, (Double) param);
-                } else if (param instanceof Boolean) {
-                    stmt.setBoolean(i + 1, (Boolean) param);
-                }
+                stmt.setObject(i + 1, params.get(i));
             }
 
             try (ResultSet rs = stmt.executeQuery()) {
@@ -99,7 +126,6 @@ public class RoomService {
 
         return results;
     }
-
 
     // Actualiza una habitación
     public void updateRoom(Room room) {
@@ -120,13 +146,13 @@ public class RoomService {
     // Actualiza el estado de disponibilidad de una habitación
     public void updateAvailability(int roomId, boolean available) {
         String sql = "UPDATE rooms SET available = ? WHERE id = ?";
-        
+
         try (Connection conn = databaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setBoolean(1, available);
             stmt.setInt(2, roomId);
-            
+
             stmt.executeUpdate();
             System.out.println("Disponibilidad de la habitación actualizada correctamente.");
         } catch (SQLException e) {
