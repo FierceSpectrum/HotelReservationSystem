@@ -40,36 +40,54 @@ class ReportServiceTest {
     public void setUp() throws SQLException {
         MockitoAnnotations.openMocks(this);
 
-        // Asegurar que el servicio usa el mock de DatabaseConnection
+        // Arrange
         reportService = new ReportService(databaseConnection);
 
-        // Configurar el comportamiento de los mocks
+        // Arrange
         when(databaseConnection.getConnection()).thenReturn(connection);
         when(connection.prepareStatement(anyString())).thenReturn(preparedStatement);
     }
 
     @Test
-    public void testGenerateReport() throws SQLException {
-        // Configurar el mock para executeQuery
+    public void testGenerateReport_Success() throws SQLException {
+        // Arrange
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.next()).thenReturn(true);
         when(resultSet.getInt("occupied_rooms")).thenReturn(5);
 
-        // Capturar la salida impresa en consola
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
         System.setOut(new PrintStream(outContent));
 
-        // Ejecutar el método
+        // Act
         reportService.generateReport(LocalDate.now(), LocalDate.now().plusDays(3));
 
-        // Verificar que la salida sea la esperada
-        String expectedOutput = "Reporte de ocupación del " + LocalDate.now() + " al " + LocalDate.now().plusDays(3) + ": 5 habitaciones ocupadas.\n";
+        // Assert
+        String expectedOutput = "Reporte de ocupación del " + LocalDate.now() + " al " + LocalDate.now().plusDays(3)
+                + ": 5 habitaciones ocupadas.";
         assertEquals(outContent.toString().trim(), expectedOutput.trim());
 
-        // Restaurar la salida estándar
         System.setOut(System.out);
 
-        // Verificar que se llamó a executeQuery
+        verify(preparedStatement, times(1)).executeQuery();
+    }
+
+    @Test
+    public void testGenerateReport_Failure() throws SQLException {
+        // Arrange
+        when(preparedStatement.executeQuery()).thenThrow(new SQLException("Error al ejecutar la consulta"));
+
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent));
+
+        // Act
+        reportService.generateReport(LocalDate.now(), LocalDate.now().plusDays(3));
+
+        // Assert
+        String expectedOutput = "No se pudo generar el reporte de ocupación.";
+        assertEquals(outContent.toString().trim(), expectedOutput.trim());
+
+        System.setOut(System.out);
+
         verify(preparedStatement, times(1)).executeQuery();
     }
 }

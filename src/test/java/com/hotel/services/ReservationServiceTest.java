@@ -44,54 +44,81 @@ class ReservationServiceTest {
     public void setUp() throws SQLException {
         MockitoAnnotations.openMocks(this);
 
-        // Asegurar que el servicio usa el mock de DatabaseConnection
+        // Ensure the service uses the mock of DatabaseConnection
         reservationService = new ReservationService(databaseConnection, roomService);
 
-        // Configurar el comportamiento de los mocks
+        // Configure the behavior of the mocks
         when(databaseConnection.getConnection()).thenReturn(connection);
         when(connection.prepareStatement(any())).thenReturn(preparedStatement);
         when(connection.prepareStatement(any(), anyInt())).thenReturn(preparedStatement);
     }
 
     @Test
-    public void testCreateReservation() throws SQLException {
-        // Configurar el mock para executeUpdate y getGeneratedKeys
+    public void testCreateReservation_Success() throws SQLException {
+        // Arrange
         when(preparedStatement.executeUpdate()).thenReturn(1);
         when(preparedStatement.getGeneratedKeys()).thenReturn(resultSet);
         when(resultSet.next()).thenReturn(true);
         when(resultSet.getInt(1)).thenReturn(1);
 
-        // Crear una reserva
+        // Act
         Reservation reservation = new Reservation(0, 1, 1, LocalDate.now(), LocalDate.now().plusDays(2), "Active");
-
-        // Crear la reserva
         reservationService.createReservation(reservation);
 
-        // Verficar que se asignó un ID
+        // Assert
         assertEquals(reservation.getId(), 1);
-
-        // Verificar que se llamó a executeUpdate
         verify(preparedStatement, times(1)).executeUpdate();
     }
 
     @Test
-    public void testCancelReservation() throws SQLException {
-        // Configurar el mock para executeUpdate
+    public void testCreateReservation_Failure() throws SQLException {
+        // Arrange
+        when(preparedStatement.executeUpdate()).thenThrow(new SQLException("Error al crear la reserva"));
+
+        // Act
+        Reservation reservation = new Reservation(0, 1, 1, LocalDate.now(), LocalDate.now().plusDays(2), "Active");
+        reservationService.createReservation(reservation);
+
+        // Assert
+        assertEquals(reservation.getId(), 0);
+        verify(preparedStatement, times(1)).executeUpdate();
+    }
+
+    @Test
+    public void testCancelReservation_Success() throws SQLException {
+        // Arrange
         when(preparedStatement.executeUpdate()).thenReturn(1);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.next()).thenReturn(true);
+        when(resultSet.getInt("room_id")).thenReturn(1);
 
-        // Cancelar la reserva
+        // Act
         reservationService.cancelReservation(1);
 
-        // Verificar que se llamó a executeUpdate
+        // Assert
         verify(preparedStatement, times(1)).executeUpdate();
         verify(preparedStatement, times(1)).executeQuery();
+        verify(roomService, times(1)).updateAvailability(1, true);
     }
 
     @Test
-    public void testGetReservationHistory() throws SQLException {
-        // Configurar el mock para executeQuery
+    public void testCancelReservation_Failure() throws SQLException {
+        // Arrange
+        when(preparedStatement.executeQuery()).thenReturn(resultSet);
+        when(resultSet.next()).thenReturn(false);
+
+        // Act
+        reservationService.cancelReservation(1);
+
+        // Assert
+        verify(preparedStatement, times(1)).executeQuery();
+        verify(preparedStatement, times(0)).executeUpdate();
+        verify(roomService, times(0)).updateAvailability(anyInt(), anyBoolean());
+    }
+
+    @Test
+    public void testGetReservationHistory_Success() throws SQLException {
+        // Arrange
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.next()).thenReturn(true, false);
         when(resultSet.getInt("id")).thenReturn(1);
@@ -101,14 +128,25 @@ class ReservationServiceTest {
         when(resultSet.getDate("check_out_date")).thenReturn(java.sql.Date.valueOf(LocalDate.now().plusDays(2)));
         when(resultSet.getString("status")).thenReturn("Active");
 
-        // Obtener el historial de reservas
+        // Act
         List<Reservation> reservations = reservationService.getReservationHistory(1);
 
-        // Verificar que la lista no está vacía
+        // Assert
         assertFalse(reservations.isEmpty());
         assertEquals(reservations.size(), 1);
+        verify(preparedStatement, times(1)).executeQuery();
+    }
 
-        // Verificar que se llamó a executeQuery
+    @Test
+    public void testGetReservationHistory_Failure() throws SQLException {
+        // Arrange
+        when(preparedStatement.executeQuery()).thenThrow(new SQLException("Error al obtener el historial de reservas"));
+
+        // Act
+        List<Reservation> reservations = reservationService.getReservationHistory(1);
+
+        // Assert
+        assertTrue(reservations.isEmpty());
         verify(preparedStatement, times(1)).executeQuery();
     }
 }

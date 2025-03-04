@@ -19,6 +19,9 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
 
+/**
+ * 
+ */
 public class ClientServiceTest {
 
     @Mock
@@ -40,39 +43,49 @@ public class ClientServiceTest {
     public void setUp() throws SQLException {
         MockitoAnnotations.openMocks(this);
 
-        // Asegurar que el servicio usa el mock de DatabaseConnection
+        // Ensure the service uses the mock of DatabaseConnection
         clientService = new ClientService(databaseConnection);
 
-        // Configurar el comportamiento de los mocks
+        // Configure the behavior of the mocks
         when(databaseConnection.getConnection()).thenReturn(connection);
         when(connection.prepareStatement(any())).thenReturn(preparedStatement);
         when(connection.prepareStatement(any(), anyInt())).thenReturn(preparedStatement);
     }
 
     @Test
-    public void testRegisterClient() throws SQLException {
-        // Configurar el mock para executeUpdate y getGeneratedKeys
+    public void testRegisterClient_Success() throws SQLException {
+        // Arrange
         when(preparedStatement.executeUpdate()).thenReturn(1);
         when(preparedStatement.getGeneratedKeys()).thenReturn(resultSet);
         when(resultSet.next()).thenReturn(true);
         when(resultSet.getInt(1)).thenReturn(1);
-
-        // Crear un cliente con un email único
         Client client = new Client(0, "John Doe", "john@example.com", "123456789");
 
-        // Guardar el cliente
+        // Act
         clientService.registerClient(client);
 
-        // Verificar que se asignó el ID
+        // Assert
         assertEquals(client.getId(), 1);
-
-        // Verificar que se llamó a executeUpdate
         verify(preparedStatement, times(1)).executeUpdate();
     }
 
     @Test
-    public void testGetAllClients() throws SQLException {
-        // Configurar el mock para executeQuery
+    public void testRegisterClient_Failure() throws SQLException {
+        // Arrange
+        when(preparedStatement.executeUpdate()).thenThrow(new SQLException("Database error"));
+        Client client = new Client(0, "John Doe", "john@example.com", "123456789");
+
+        // Act
+        clientService.registerClient(client);
+
+        // Assert
+        assertEquals(client.getId(), 0);
+        verify(preparedStatement, times(1)).executeUpdate();
+    }
+
+    @Test
+    public void testGetAllClients_Success() throws SQLException {
+        // Arrange
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.next()).thenReturn(true, false);
         when(resultSet.getInt("id")).thenReturn(1);
@@ -80,67 +93,111 @@ public class ClientServiceTest {
         when(resultSet.getString("email")).thenReturn("john@example.com");
         when(resultSet.getString("phone")).thenReturn("123456789");
 
-        // Obtener todos los clientes
+        // Act
         List<Client> clients = clientService.getAllClients();
 
-        // Verificar que se obtuvieron los clientes correctamente
-        assertNotNull(clients, "La lista de clientes no debe ser nula.");
+        // Assert
+        assertNotNull(clients, "The client list should not be null.");
         assertEquals(clients.size(), 1);
         assertEquals(clients.get(0).getName(), "John Doe");
         assertEquals(clients.get(0).getEmail(), "john@example.com");
-
-        // Verificar que se llamó a executeQuery
         verify(preparedStatement, times(1)).executeQuery();
-
     }
 
     @Test
-    public void testGetClient() throws SQLException {
-        // Configurar el mock para executeQuery
+    public void testGetAllClients_Failure() throws SQLException {
+        // Arrange
+        when(preparedStatement.executeQuery()).thenThrow(new SQLException("Database error"));
+
+        // Act
+        List<Client> clients = clientService.getAllClients();
+
+        // Assert
+        assertNotNull(clients);
+        assertTrue(clients.isEmpty());
+        verify(preparedStatement, times(1)).executeQuery();
+    }
+
+    @Test
+    public void testGetClient_Success() throws SQLException {
+        // Arrange
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
-        when(resultSet.next()).thenReturn(true); // Simular que hay un resultado
+        when(resultSet.next()).thenReturn(true);
         when(resultSet.getInt("id")).thenReturn(1);
         when(resultSet.getString("name")).thenReturn("John Doe");
         when(resultSet.getString("email")).thenReturn("john@example.com");
         when(resultSet.getString("phone")).thenReturn("123456789");
 
-        // Buscar el cliente por ID
+        // Act
         Client foundClient = clientService.getClient(1);
 
-        // Verificar que el cliente se encontró correctamente
-        assertNotNull(foundClient, "El cliente no debe ser nulo.");
+        // Assert
+        assertNotNull(foundClient);
         assertEquals(foundClient.getId(), 1);
-        assertEquals(foundClient.getName(), "John Doe");
-        assertEquals(foundClient.getEmail(), "john@example.com");
-
-        // Verificar que se llamó a executeQuery
         verify(preparedStatement, times(1)).executeQuery();
     }
 
     @Test
-    public void testUpdateClient() throws SQLException {
-        // Configurar el mock para executeUpdate
-        when(preparedStatement.executeUpdate()).thenReturn(1);
+    public void testGetClient_Failure() throws SQLException {
+        // Arrange
+        when(preparedStatement.executeQuery()).thenReturn(resultSet);
+        when(resultSet.next()).thenReturn(false);
 
-        // Crear cliente
+        // Act
+        Client foundClient = clientService.getClient(1);
+
+        // Assert
+        assertNull(foundClient);
+        verify(preparedStatement).executeQuery();
+    }
+
+    @Test
+    public void testUpdateClient_Success() throws SQLException {
+        // Arrange
+        when(preparedStatement.executeUpdate()).thenReturn(1);
         Client client = new Client(1, "John Doe", "john@example.com", "123456789");
 
-        // Actualizar el cliente
+        // Act
         clientService.updateClient(client);
 
-        // Verificar que se llamó a executeQuery
+        // Assert
         verify(preparedStatement, times(1)).executeUpdate();
     }
 
     @Test
-    public void testDeleteClient() throws SQLException {
-        // Configurar el mock para executeUpdate
+    public void testUpdateClient_Failure() throws SQLException {
+        // Arrange
+        when(preparedStatement.executeUpdate()).thenThrow(new SQLException("Database error"));
+        Client client = new Client(1, "John Doe", "john@example.com", "123456789");
+
+        // Act
+        clientService.updateClient(client);
+
+        // Assert
+        verify(preparedStatement, times(1)).executeUpdate();
+    }
+
+    @Test
+    public void testDeleteClient_Success() throws SQLException {
+        // Arrange
         when(preparedStatement.executeUpdate()).thenReturn(1);
 
-
+        // Act
         clientService.deleteClient(1);
 
-        // Verificar que se llamó a executeUpdate
+        // Assert
+        verify(preparedStatement, times(1)).executeUpdate();
+    }
+
+    @Test
+    public void testDeleteClient_Failure() throws SQLException {
+        // Arrange
+        when(preparedStatement.executeUpdate()).thenThrow(new SQLException("Database error"));
+
+        // Act
+        clientService.deleteClient(1);
+
+        // Assert
         verify(preparedStatement, times(1)).executeUpdate();
     }
 }

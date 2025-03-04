@@ -43,7 +43,7 @@ public class InvoiceService {
     // Método para calcular el total de la factura
     private double calculateTotal(Reservation reservation) {
         double roomPrice = roomService.getRoom(reservation.getRoomId()).getPrice();
-        int days = reservation.getCheckOutDate().until(reservation.getCheckInDate()).getDays();
+        int days = reservation.getCheckInDate().until(reservation.getCheckOutDate()).getDays();
         return roomPrice * days;
     }
 }
