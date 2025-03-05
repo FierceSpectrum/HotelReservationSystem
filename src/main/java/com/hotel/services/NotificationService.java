@@ -22,9 +22,10 @@ public class NotificationService {
     // Envía notificaciones a las clientes para los próximos check-ins
     public void createNotifications(int dayBefore) {
         List<Reservation> reservations = new ArrayList<>();
-        String query = "SELECT * FROM reservations WHERE check_in_date BETWEEN ? AND ?";
+        String query = "SELECT * FROM reservations WHERE check_in_date >= ? AND check_in_date <= ?";
         LocalDate today = LocalDate.now();
         LocalDate futureDate = today.plusDays(dayBefore);
+        System.out.println("Buscando reservas entre " + today + " y " + futureDate);
 
         try (Connection conn = databaseConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(query)) {

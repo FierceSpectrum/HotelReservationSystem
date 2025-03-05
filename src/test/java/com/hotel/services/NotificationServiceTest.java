@@ -55,7 +55,7 @@ class NotificationServiceTest {
         when(resultSet.getInt("room_id")).thenReturn(1);
         when(resultSet.getDate("check_in_date")).thenReturn(java.sql.Date.valueOf(LocalDate.now().plusDays(1)));
         when(resultSet.getDate("check_out_date")).thenReturn(java.sql.Date.valueOf(LocalDate.now().plusDays(3)));
-        when(resultSet.getString("status")).thenReturn("Active");
+        when(resultSet.getString("status")).thenReturn("true");
 
         // Act
         notificationService.createNotifications(1);

@@ -34,6 +34,7 @@ public class ReservationService {
                 if (generatedKeys.next()) {
                     int id = generatedKeys.getInt(1);
                     reservation.setId(id);
+                    roomService.updateAvailability(reservation.getRoomId(), false);
                     System.out.println("Reserva creada correctamente con ID: " + id);
                 } else {
                     System.out.println("No se pudo obtener el ID generado.");

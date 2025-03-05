@@ -75,6 +75,12 @@
             <compilerArgs>
                 <arg>-Xlint:-options</arg> <!-- Desactiva advertencias innecesarias -->
             </compilerArgs>
+            <logger name="com.zaxxer.hikari.HikariConfig" level="WARN"/>
+            <logger name="org.hibernate" level="WARN"/>
+            <logger name="com.zaxxer.hikari" level="WARN"/>
+            <root level="INFO">
+                <appender-ref ref="STDOUT"/>
+            </root>
         </configuration>
       </plugin>
       <plugin>

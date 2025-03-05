@@ -1,0 +1,8 @@
+<Configuration status="WARN">
+    <Loggers>
+        <Logger name="com.zaxxer.hikari" level="WARN"/>
+        <Root level="INFO">
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+</Configuration>

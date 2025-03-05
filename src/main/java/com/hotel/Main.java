@@ -61,6 +61,10 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Scanner;
 
+import org.slf4j.LoggerFactory;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+
 public class Main {
 
     private static Scanner scanner = new Scanner(System.in);
@@ -75,6 +79,8 @@ public class Main {
      * @param args Command line arguments
      */
     public static void main(String[] args) {
+        ((Logger) LoggerFactory.getLogger("com.zaxxer.hikari")).setLevel(Level.WARN);
+        System.out.println("Bienvenido al sistema de gestión de hotel");
         // Inicializar la conexión a la base de datos
         DatabaseConnection dbConnection = DatabaseConnection.getInstance();
 
@@ -94,15 +100,20 @@ public class Main {
         NotificationController notificationController = new NotificationController(notificationService);
         ReportController reportController = new ReportController(reportService);
 
-        // Simular login
-        String role = login(clientController);
-        if (role.equals("ADMIN")) {
-            showAdminMenu(clientController, roomController, invoiceController, notificationController,
-                    reportController);
-        } else if (role.equals("CLIENT")) {
-            showClientMenu(roomController, reservationController, clientController);
-        } else {
-            System.out.println("Rol no válido");
+        while (true) {
+            // Simular login
+            String role = login(clientController);
+            if (role.equals("ADMIN")) {
+                showAdminMenu(clientController, roomController, invoiceController, notificationController,
+                        reportController);
+            } else if (role.equals("CLIENT")) {
+                showClientMenu(roomController, reservationController, clientController);
+            } else if (role.equals("UNKNOWN")) {
+                System.out.println("Rol no válido");
+            } else {
+                System.out.println("Saliendo...");
+                break;
+            }
         }
     }
 
@@ -114,9 +125,13 @@ public class Main {
      * @return The role of the user ("ADMIN", "CLIENT", or "UNKNOWN")
      */
     public static String login(ClientController clientController) {
-        System.out.println("Bienvenido al sistema de gestión de hotel");
         System.out.println("Por favor, ingrese su correo electrónico:");
         String email = scanner.nextLine();
+
+        // Validar si lo ingresado es la palabra salir
+        if (email.equalsIgnoreCase("salir")) {
+            return "EXIT";
+        }
 
         // Verificar si el correo pertenece a un administrador
         if (adminEmails.contains(email)) {
@@ -317,9 +332,11 @@ public class Main {
         System.out.println("Ingrese el tipo de habitación (opcional, presione Enter para omitir):");
         String type = scanner.nextLine();
         System.out.println("Ingrese el precio máximo (opcional, presione Enter para omitir):");
-        Double priceInput = scanner.nextLine().isEmpty() ? null : Double.parseDouble(scanner.nextLine());
+        String priceInputStr = scanner.nextLine();
+        Double priceInput = priceInputStr.isEmpty() ? null : Double.parseDouble(priceInputStr); 
         System.out.println("¿Está disponible? (opcional, presione Enter para omitir):");
-        Boolean available = scanner.nextLine().isEmpty() ? null : Boolean.parseBoolean(scanner.nextLine());
+        String availableInput = scanner.nextLine();
+        Boolean available = availableInput.isEmpty() ? null : Boolean.parseBoolean(availableInput);
         List<Room> rooms = roomController.findRoomByType(type, priceInput, available);
         rooms.forEach(room -> System.out.println("Habitación ID: " + room.getId() + ", Tipo: " + room.getType()
                 + ", Precio: " + room.getPrice() + ", Disponible: " + room.isAvailable()));
@@ -362,8 +379,6 @@ public class Main {
      * @param reservationController The reservation controller
      */
     public static void viewReservationHistory(ReservationController reservationController) {
-        scanner.nextLine();
-
         List<Reservation> reservations = reservationController.getClientReservations(clientId);
         reservations.forEach(reservation -> System.out.println("Reservación ID: " + reservation.getId()
                 + ", Habitación ID: " + reservation.getRoomId()));

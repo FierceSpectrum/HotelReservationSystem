@@ -125,7 +125,7 @@ public class ClientService {
     public Client getClientByEmail(String email) {
         List<Client> clients = getAllClients();
         for (Client client : clients) {
-            if (client.getEmail().equalsIgnoreCase(email)) {
+            if (client.getEmail().trim().equalsIgnoreCase(email)) {
                 System.out.println("Cliente encontrado correctamente.");
                 return client;
             }
